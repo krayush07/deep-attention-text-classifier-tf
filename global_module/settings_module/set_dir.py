@@ -1,7 +1,7 @@
 import os
 
 
-class Directory():
+class Directory:
     def __init__(self, mode):
         """
         :param mode: 'TR' for train, 'TE' for test, 'VA' for valid
@@ -33,10 +33,10 @@ class Directory():
         self.data_filename = self.data_path + '/tokenized_train.txt'
         self.label_filename = self.data_path + '/label_train.txt'
 
-        if (mode == 'VA'):
+        if mode == 'VA':
             self.data_filename = self.data_path + '/tokenized_valid.txt'
             self.label_filename = self.data_path + '/label_valid.txt'
-        elif (mode == 'TE'):
+        elif mode == 'TE':
             self.data_filename = self.data_path + '/tokenized_test.txt'
             self.label_filename = self.data_path + '/label_test.txt'
 
@@ -47,11 +47,10 @@ class Directory():
 
         ''' ****************** Directory to saving or loading a model ********************** '''''
         self.latest_checkpoint = 'checkpoint'
-        self.model_name = '/cnn_classifier.ckpt'  # model name .ckpt is the model extension
+        self.model_name = '/text_classifier.ckpt'  # model name .ckpt is the model extension
         ''' ********** ********* ******** ********* ********* ********* ******** ************* '''''
 
-        self.test_cost_path = self.output_path + '/dummy.txt'  # test cost output
-        self.clstm_vector_path = self.output_path + '/dummy_vector.txt'  # test vector output
+        self.test_cost_path = self.output_path + '/test_predictions.txt'  # test cost output
 
         '''Directory to csv and pkl files'''
         self.vocab_size_file = self.vocab_path + '/vocab_size.txt'
@@ -61,7 +60,7 @@ class Directory():
         self.label_map_dict = self.vocab_path + '/label_map.pkl'
 
         ''' ****************** Directory for test model ********************** '''''
-        self.test_model_name = '/cnn_classifier.ckpt'
+        self.test_model_name = '/text_classifier.ckpt'
         self.test_model = self.model_path + self.test_model_name
 
     def makedir(self, dirname):

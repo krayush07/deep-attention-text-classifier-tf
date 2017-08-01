@@ -12,7 +12,6 @@ from global_module.implementation_module import reader
 # merged = tf.summary.merge_all()
 
 def run_epoch(session, eval_op, min_cost, model_obj, dict_obj, epoch_num, verbose=False):
-    combined_loss = -1.0
     epoch_combined_loss = 0.0
     total_correct = 0.0
     total_instances = 0.0
@@ -23,10 +22,11 @@ def run_epoch(session, eval_op, min_cost, model_obj, dict_obj, epoch_num, verbos
     data_filename = dir_obj.data_filename
     label_filename = dir_obj.label_filename
 
-    for step, (input_seq_arr, label_arr) \
+    for step, (input_seq_arr, length_arr, label_arr) \
             in enumerate(reader.data_iterator(params, data_filename, label_filename, model_obj.params.indices, dict_obj)):
         feed_dict = {}
         feed_dict[model_obj.word_input] = input_seq_arr
+        feed_dict[model_obj.seq_length] = length_arr
         feed_dict[model_obj.label] = label_arr
 
         loss, prediction, probabilities, _ = session.run([model_obj.loss,
@@ -40,13 +40,13 @@ def run_epoch(session, eval_op, min_cost, model_obj, dict_obj, epoch_num, verbos
         total_instances += params.batch_size
         epoch_combined_loss += loss
 
-    print 'Epoch Num: %d, CE loss: %.4f, Accuracy: %.4f' % (epoch_num, (epoch_combined_loss), (total_correct / total_instances) * 100)
+    print 'Epoch Num: %d, CE loss: %.4f, Accuracy: %.4f' % (epoch_num, epoch_combined_loss, (total_correct / total_instances) * 100)
 
-    if (params.mode == 'VA'):
+    if params.mode == 'VA':
         model_saver = tf.train.Saver()
-        print('**** Current minimum on valid set: %.4f ****' % (min_cost))
+        print('**** Current minimum on valid set: %.4f ****' % min_cost)
 
-        if (epoch_combined_loss < min_cost):
+        if epoch_combined_loss < min_cost:
             min_cost = epoch_combined_loss
             model_saver.save(session, save_path=dir_obj.model_path + dir_obj.model_name, latest_filename=dir_obj.latest_checkpoint)
             print('==== Model saved! ====')
@@ -54,13 +54,13 @@ def run_epoch(session, eval_op, min_cost, model_obj, dict_obj, epoch_num, verbos
     return epoch_combined_loss, min_cost, min_cost
 
 
-def getLength(fileName):
-    print('Reading :', fileName)
-    dataFile = open(fileName, 'r')
+def get_length(filename):
+    print('Reading :', filename)
+    data_file = open(filename, 'r')
     count = 0
-    for _ in dataFile:
+    for _ in data_file:
         count += 1
-    dataFile.close()
+    data_file.close()
     return count, np.arange(count)
 
 
@@ -71,17 +71,17 @@ def run_train(dict_obj):
 
     params_train = set_params.ParamsClass(mode=mode_train)
     dir_train = set_dir.Directory(mode_train)
-    params_train.num_instances, params_train.indices = getLength(dir_train.data_filename)
+    params_train.num_instances, params_train.indices = get_length(dir_train.data_filename)
 
     # valid object
 
     params_valid = set_params.ParamsClass(mode=mode_valid)
     dir_valid = set_dir.Directory(mode_valid)
-    params_valid.num_instances, params_valid.indices = getLength(dir_valid.data_filename)
+    params_valid.num_instances, params_valid.indices = get_length(dir_valid.data_filename)
 
     params_train.num_classes = params_valid.num_classes = len(dict_obj.label_dict)
 
-    if (params_train.enable_shuffle):
+    if params_train.enable_shuffle:
         random.shuffle(params_train.indices)
         random.shuffle(params_valid.indices)
 
@@ -103,11 +103,11 @@ def run_train(dict_obj):
 
         with tf.name_scope('train'):
             with tf.variable_scope("model", reuse=None, initializer=xavier_initializer):
-                train_obj = model.CNNClassification(params_train, dir_train)
+                train_obj = model.DeepAttentionClassifier(params_train, dir_train)
 
         with tf.name_scope('valid'):
             with tf.variable_scope("model", reuse=True, initializer=xavier_initializer):
-                valid_obj = model.CNNClassification(params_valid, dir_valid)
+                valid_obj = model.DeepAttentionClassifier(params_valid, dir_valid)
 
         if not params_train.enable_checkpoint:
             session.run(tf.global_variables_initializer())
@@ -117,7 +117,7 @@ def run_train(dict_obj):
             if ckpt and ckpt.model_checkpoint_path:
                 print("Loading model from: %s" % ckpt.model_checkpoint_path)
                 tf.train.Saver().restore(session, ckpt.model_checkpoint_path)
-        elif (not params_train.use_random_initializer):
+        elif not params_train.use_random_initializer:
             session.run(tf.assign(train_obj.word_emb_matrix, word_emb_matrix, name="word_embedding_matrix"))
 
         print('**** TF GRAPH INITIALIZED ****')
@@ -138,7 +138,7 @@ def run_train(dict_obj):
             print("Epoch: %d Train loss: %.3f" % (i + 1, train_loss))
 
             valid_loss, curr_loss, summary = run_epoch(session, tf.no_op(), min_loss, valid_obj, dict_obj, i)
-            if (curr_loss < min_loss):
+            if curr_loss < min_loss:
                 min_loss = curr_loss
 
             print("Epoch: %d Valid loss: %.3f" % (i + 1, valid_loss))

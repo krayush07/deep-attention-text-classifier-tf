@@ -1,3 +1,4 @@
 .idea/
 *.pyc
-global_module/utility_dir/
+global_module/utility_dir/folder1/data/90_10_split
+global_module/utility_dir/folder1/data/git_data

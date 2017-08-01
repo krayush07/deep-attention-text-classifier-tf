@@ -28,7 +28,7 @@ def sample_train_file(raw_training_file, training_file, threshold):
             tokenized_training_string += tokenized_string + '\t'
 
             for token in tokenized_sent:
-                if (word_dict.has_key(token) == False):
+                if token not in word_dict:
                     word_dict[token] = 1
                 else:
                     word_dict[token] += word_dict[token] + 1
@@ -49,18 +49,18 @@ def sample_train_file(raw_training_file, training_file, threshold):
                 #     modified_string += token + ' '
                 # else:
                 words = token.split("#")
-                if (word_dict[words[0]] <= threshold):
+                if word_dict[words[0]] <= threshold:
                     # modified_string += 'UNK' + '#' + words[1] + ' '
                     modified_string += 'UNK' + ' '
-                    if (rare_words.has_key(words[0]) == False):
+                    if words[0] not in rare_words:
                         rare_words[words[0]] = 1
                         rare_words_count += 1
-                elif (config.use_unknown_word == True):
+                elif config.use_unknown_word:
                     modified_string += token + ' '
-                elif (glove_dict.has_key(words[0]) == False and config.use_random_initializer == False and config.use_unknown_word == False):
+                elif words[0] not in glove_dict and not config.use_random_initializer and not config.use_unknown_word:
                     # modified_string += 'UNK' + '#' + words[1] + ' '
                     modified_string += 'UNK' + ' '
-                    if (rare_words.has_key(words[0]) == False):
+                    if words[0] not in rare_words:
                         rare_words[words[0]] = 1
                         rare_words_count += 1
                 else:
@@ -77,7 +77,7 @@ def sample_train_file(raw_training_file, training_file, threshold):
 def main():
     raw_training_file = set_dir.Directory('TR').raw_train_path
     training_file = set_dir.Directory('TR').data_filename
-    sample_train_file(raw_training_file, training_file, 1)
+    sample_train_file(raw_training_file, training_file, set_params.ParamsClass().sampling_threshold)
 
 
 if __name__ == '__main__':

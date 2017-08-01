@@ -21,10 +21,11 @@ def run_epoch(session, eval_op, model_obj, dict_obj, verbose=False):
     data_filename = dir_obj.data_filename
     label_filename = dir_obj.label_filename
 
-    for step, (input_seq_arr, label_arr) \
+    for step, (input_seq_arr, length_arr, label_arr) \
             in enumerate(reader.data_iterator(params, data_filename, label_filename, model_obj.params.indices, dict_obj)):
         feed_dict = {}
         feed_dict[model_obj.word_input] = input_seq_arr
+        feed_dict[model_obj.seq_length] = length_arr
         feed_dict[model_obj.label] = label_arr
 
         loss, prediction, probabilities, _ = session.run([model_obj.loss,
@@ -40,18 +41,18 @@ def run_epoch(session, eval_op, model_obj, dict_obj, verbose=False):
         for each_pred in prediction:
             output_file.write(str(each_pred + 1) + '\n')
 
-    print 'CE loss: %.4f, Accuracy: %.4f' % ((epoch_combined_loss), (total_correct / total_instances) * 100)
+    print 'CE loss: %.4f, Accuracy: %.4f' % (epoch_combined_loss, (total_correct / total_instances) * 100)
 
     return epoch_combined_loss
 
 
-def getLength(fileName):
-    print('Reading :', fileName)
-    dataFile = open(fileName, 'r')
+def get_length(filename):
+    print('Reading :', filename)
+    data_file = open(filename, 'r')
     count = 0
-    for _ in dataFile:
+    for _ in data_file:
         count += 1
-    dataFile.close()
+    data_file.close()
     return count, np.arange(count)
 
 
@@ -68,7 +69,7 @@ def init_test():
     # test object
     params_test = set_params.ParamsClass(mode=mode_test)
     dir_test = set_dir.Directory(mode_test)
-    params_test.num_instances, params_test.indices = getLength(dir_test.data_filename)
+    params_test.num_instances, params_test.indices = get_length(dir_test.data_filename)
     params_test.batch_size = 1
     params_test.num_classes = len(dict_obj.label_dict)
 
@@ -84,7 +85,7 @@ def init_test():
 
     with tf.name_scope('train'):
         with tf.variable_scope("model", reuse=None):
-            test_obj = model.CNNClassification(params_test, dir_test)
+            test_obj = model.DeepAttentionClassifier(params_test, dir_test)
 
     model_saver = tf.train.Saver()
     print('Loading model ...')

@@ -8,8 +8,6 @@ output_seq = open(root_folder + 'seq_selected.txt', 'w')
 
 test_seq_file = open(root_folder + 'tokenized_test.txt', 'r')
 
-
-
 count_iter = 1
 min_pos = -1
 step_val = 5
@@ -23,14 +21,14 @@ for costLine, pred_line in zip(cost_file, test_seq_file):
     ans = pred_line.rstrip()
 
     cost = float(costLine)
-    if (count_iter < step_val):
-        if (min_cost > cost):
+    if count_iter < step_val:
+        if min_cost > cost:
             min_cost = cost
             min_pos = count_iter
             pred_ans = ans
         count_iter += 1
     else:
-        if (min_cost > cost):
+        if min_cost > cost:
             min_pos = step_val
             pred_ans = ans
         output.write(str(min_pos) + "\n")
@@ -43,7 +41,6 @@ cost_file.close()
 output.close()
 output_seq.close()
 test_seq_file.close()
-
 
 output_seq = open(root_folder + 'seq_selected.txt', 'r')
 test_act_file = open(root_folder + 'tokenized_test_actual.txt', 'r')
@@ -58,7 +55,7 @@ for l1, l2 in zip(output_seq, test_act_file):
     total += 1
     l1 = l1.rstrip()
     l2 = l2.rstrip()
-    if(l1.lower() == l2.lower()):
+    if l1.lower() == l2.lower():
         correct += 1
         output_seq_info.write(l1 + "\t" + "CORRECT" + "\n")
         correct_incorrect_file.write("correct\n")
