@@ -1,0 +1,2 @@
+model_checkpoint_path: "/home/aykumar/aykumar_home/self/deep-text-classifier/global_module/utility_dir/folder1/models/text_classifier.ckpt"
+all_model_checkpoint_paths: "/home/aykumar/aykumar_home/self/deep-text-classifier/global_module/utility_dir/folder1/models/text_classifier.ckpt"
