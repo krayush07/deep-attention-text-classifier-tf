@@ -3,20 +3,20 @@ import numpy as np
 from global_module.settings_module import set_params, set_dict
 
 
-def get_index_string(utt, word_dict):
+def get_index_string(utt, word_dict, params):
     index_string = ''
     for each_token in utt.split():
-
-        if each_token.lower() in word_dict:
-            each_token = each_token.lower()
-        elif each_token in word_dict:
-            each_token = each_token
-        elif each_token.title() in word_dict:
-            each_token = each_token.title()
-        elif each_token.upper() in word_dict:
-            each_token = each_token.upper()
-        else:
-            each_token = each_token.lower()
+        if (params.all_lowercase):
+            if each_token.lower() in word_dict:
+                each_token = each_token.lower()
+            elif each_token in word_dict:
+                each_token = each_token
+            elif each_token.title() in word_dict:
+                each_token = each_token.title()
+            elif each_token.upper() in word_dict:
+                each_token = each_token.upper()
+            else:
+                each_token = each_token.lower()
 
         index_string += str(word_dict.get(each_token, word_dict.get("UNK"))) + '\t'
     return len(index_string.strip().split()), index_string.strip()
@@ -68,7 +68,7 @@ def generate_id_map(params, data_filename, label_filename, index_arr, dict_obj):
         curr_line = data_file_arr[each_idx].strip()
         curr_label = dict_obj.label_dict[label_file_arr[each_idx].strip()]
 
-        curr_seq_token_len, curr_seq_token_id = get_index_string(curr_line, dict_obj.word_dict)
+        curr_seq_token_len, curr_seq_token_id = get_index_string(curr_line, dict_obj.word_dict, params)
         curr_seq_token_string = format_string(curr_seq_token_id, curr_seq_token_len, params.MAX_SEQ_LEN)
 
         if (curr_seq_token_len > params.MAX_SEQ_LEN):
