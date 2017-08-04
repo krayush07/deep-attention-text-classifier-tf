@@ -108,30 +108,3 @@ def get_length(filename):
         count += 1
     data_file.close()
     return count, np.arange(count)
-
-
-def main():
-    data_file = '/home/aykumar/aykumar_home/aykumar_dir/multi_view/global_module/utility_dir/folder1/data/raw_tokenized_train.txt'
-    label_file = '/home/aykumar/aykumar_home/aykumar_dir/multi_view/global_module/utility_dir/folder1/data/labels_train.txt'
-    count, utterance_idx = get_length(data_file)
-    dict_obj = set_dict.Dictionary('TR')
-    config = set_params.ParamsClass('TR')
-    flag = 'TR'
-
-    a, b, c, d, e = data_iterator(config, data_file, label_file, utterance_idx, dict_obj)
-
-    # for step, (a, b, c, d, e, f, g, h) in enumerate(data_iterator(config, data_file, label_file, utterance_idx, dict_obj)):
-    #     print 1
-    # np.savetxt('a.txt', a, fmt='%d')
-    # np.savetxt('b.txt', b, fmt='%d')
-    # np.savetxt('c.txt', c, fmt='%d')
-    # np.savetxt('d.txt', d, fmt='%d')
-    # np.savetxt('e.txt', e, fmt='%d')
-    # np.savetxt('f.txt', f, fmt='%d')
-    # print g
-    # np.savetxt('g.txt', np.squeeze(g), fmt='%d')
-    # np.savetxt('h.txt', h)
-
-
-if __name__ == '__main__':
-    main()
