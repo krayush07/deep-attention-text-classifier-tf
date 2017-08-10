@@ -22,7 +22,7 @@ def sample_train_file(raw_training_file, training_file, threshold):
         size = len(string)
         tokenized_training_string = ''
         for j in range(size):
-            string[j] = re.sub(r'#[0-9]+', r'', string[j].strip())
+            # string[j] = re.sub(r'#[0-9]+', r'', string[j].strip())
             tokenized_sent = string[j].split(" ")
             tokenized_string = ' '.join(tokenized_sent)
             tokenized_training_string += tokenized_string + '\t'
@@ -48,20 +48,20 @@ def sample_train_file(raw_training_file, training_file, threshold):
                 # if(config.use_random_initializer):
                 #     modified_string += token + ' '
                 # else:
-                words = token.split("#")
-                if word_dict[words[0]] <= threshold:
+                # words = token.split("#")
+                if word_dict[token] <= threshold:
                     # modified_string += 'UNK' + '#' + words[1] + ' '
                     modified_string += 'UNK' + ' '
-                    if words[0] not in rare_words:
-                        rare_words[words[0]] = 1
+                    if token not in rare_words:
+                        rare_words[token] = 1
                         rare_words_count += 1
                 elif config.use_unknown_word:
                     modified_string += token + ' '
-                elif words[0] not in glove_dict and not config.use_random_initializer and not config.use_unknown_word:
+                elif token not in glove_dict and not config.use_random_initializer and not config.use_unknown_word:
                     # modified_string += 'UNK' + '#' + words[1] + ' '
                     modified_string += 'UNK' + ' '
-                    if words[0] not in rare_words:
-                        rare_words[words[0]] = 1
+                    if token not in rare_words:
+                        rare_words[token] = 1
                         rare_words_count += 1
                 else:
                     modified_string += token + ' '

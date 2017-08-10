@@ -91,13 +91,15 @@ class DeepAttentionClassifier:
             self.attention_output = tf.squeeze(weighted_input, axis=2)
 
     def compute_cost(self):
-        with tf.variable_scope('dropout') as scope:
-            if self.params.use_attention:
-                sentence_vector = tf.nn.dropout(self.attention_output, keep_prob=self.params.keep_prob, name='attention_vector_dropout')
-            else:
-                sentence_vector = tf.nn.dropout(self.rnn_state, keep_prob=self.params.keep_prob, name='rnn_state_dropout')
 
         with tf.variable_scope('dense_layers'):
+
+            with tf.variable_scope('dropout'):
+                if self.params.use_attention:
+                    sentence_vector = tf.nn.dropout(self.attention_output, keep_prob=self.params.keep_prob, name='attention_vector_dropout')
+                else:
+                    sentence_vector = tf.nn.dropout(self.rnn_state, keep_prob=self.params.keep_prob, name='rnn_state_dropout')
+
             output1 = tf.layers.dense(inputs=sentence_vector,
                                       units=self.params.num_classes,
                                       kernel_initializer=tf.random_uniform_initializer(minval=-0.1, maxval=0.1),
@@ -111,18 +113,6 @@ class DeepAttentionClassifier:
                                      bias_initializer=tf.constant_initializer(0.01),
                                      name='logit_layer')
 
-        with tf.variable_scope('cost_computation'):
-            gold_labels = tf.one_hot(indices=self.label, depth=self.params.num_classes, name='gold_label')
-            self.loss = tf.reduce_sum(tf.nn.softmax_cross_entropy_with_logits(labels=gold_labels, logits=logits), name='reg_loss')
-
-            with tf.variable_scope('apply_reg'):
-                if self.params.mode == 'TR':
-                    tvars = tf.trainable_variables()
-                    l2_regularizer = tf.contrib.layers.l2_regularizer(scale=self.params.REG_CONSTANT, scope=None)
-                    regularization_penalty = tf.contrib.layers.apply_regularization(l2_regularizer, tvars)
-                    reg_penalty_word_emb = tf.contrib.layers.apply_regularization(l2_regularizer, [self.word_emb_matrix])
-                    self.loss = self.loss + regularization_penalty - reg_penalty_word_emb
-
             self.prediction = tf.cast(tf.argmax(input=logits, axis=1, name='prediction'), dtype=tf.int32)
             self.probabilities = tf.nn.softmax(logits, name='softmax_probability')
 
@@ -132,20 +122,36 @@ class DeepAttentionClassifier:
                 with tf.name_scope('accuracy'):
                     self.accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
 
-            if (self.params.mode == 'TR'):
+        with tf.variable_scope('compute_loss'):
+            with tf.variable_scope('softmax_loss'):
+                gold_labels = tf.one_hot(indices=self.label, depth=self.params.num_classes, name='gold_label')
+                softmax_loss = tf.reduce_sum(tf.nn.softmax_cross_entropy_with_logits(labels=gold_labels, logits=logits), name='reg_loss')
+
+            with tf.variable_scope('reg_loss'):
+                if self.params.mode == 'TR':
+                    tvars = tf.trainable_variables()
+                    l2_regularizer = tf.contrib.layers.l2_regularizer(scale=self.params.REG_CONSTANT, scope=None)
+                    regularization_penalty = tf.contrib.layers.apply_regularization(l2_regularizer, tvars)
+                    reg_penalty_word_emb = tf.contrib.layers.apply_regularization(l2_regularizer, [self.word_emb_matrix])
+                    reg_loss = regularization_penalty - reg_penalty_word_emb
+                else:
+                    reg_loss = 0
+
+            self.loss = softmax_loss + reg_loss
+
+            if (self.params.mode == 'TR' and self.params.log):
                 self.train_loss = tf.summary.scalar('loss_train', self.loss)
                 self.train_accuracy = tf.summary.scalar('acc_train', self.accuracy)
                 # self.train_summaries.append(train_loss)
-            elif (self.params.mode == 'VA'):
+            elif (self.params.mode == 'VA' and self.params.log):
                 valid_loss = tf.summary.scalar('loss_valid', self.loss)
                 valid_accuracy = tf.summary.scalar('acc_valid', self.accuracy)
                 self.merged_else = tf.summary.merge([valid_loss, valid_accuracy])
+            else:
+                self.merged_else = []
             # self.curr_accuracy = tf.contrib.metrics.accuracy(self.prediction, self.label, name='accuracy')
 
             print 'Loss Computation: DONE'
-
-
-
 
     def train(self):
         with tf.variable_scope('train'):
@@ -160,16 +166,19 @@ class DeepAttentionClassifier:
             self._train_op = optimizer.apply_gradients(zip(self.grads, tvars), name='apply_gradient')
             # self.train_summaries.append(self.grads)
 
-            grad_summaries = []
-            for g, v in grads_and_vars:
-                if g is not None:
-                    grad_hist_summary = tf.summary.histogram("{}/grad/hist".format(v.name), g)
-                    sparsity_summary = tf.summary.scalar("{}/grad/sparsity".format(v.name), tf.nn.zero_fraction(g))
-                    grad_summaries.append(grad_hist_summary)
-                    grad_summaries.append(sparsity_summary)
-            grad_summaries_merged = tf.summary.merge(grad_summaries)
+            if (self.params.log):
+                grad_summaries = []
+                for g, v in grads_and_vars:
+                    if g is not None:
+                        grad_hist_summary = tf.summary.histogram("{}/grad/hist".format(v.name), g)
+                        sparsity_summary = tf.summary.scalar("{}/grad/sparsity".format(v.name), tf.nn.zero_fraction(g))
+                        grad_summaries.append(grad_hist_summary)
+                        grad_summaries.append(sparsity_summary)
+                grad_summaries_merged = tf.summary.merge(grad_summaries)
 
-            self.merged_train = tf.summary.merge([self.train_loss, self.train_accuracy, grad_summaries_merged])
+                self.merged_train = tf.summary.merge([self.train_loss, self.train_accuracy, grad_summaries_merged])
+            else:
+                self.merged_train = []
 
     def assign_lr(self, session, lr_value):
         session.run(tf.assign(self.lr, lr_value))

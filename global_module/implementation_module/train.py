@@ -37,7 +37,7 @@ def run_epoch(session, writer, eval_op, min_cost, model_obj, dict_obj, epoch_num
         if (model_obj.params.mode == 'TR'):
 
             iter_train += 1
-            if (iter_train % 11 == 0):
+            if (iter_train % params.log_step == 0):
                 # print 'writing'
 
                 run_options = tf.RunOptions(trace_level=tf.RunOptions.FULL_TRACE)
@@ -57,8 +57,9 @@ def run_epoch(session, writer, eval_op, min_cost, model_obj, dict_obj, epoch_num
                 total_instances += params.batch_size
                 epoch_combined_loss += loss
 
-                writer.add_run_metadata(run_metadata, 'step%d' % iter_train)
-                writer.add_summary(summary, iter_train)
+                if (params.log):
+                    writer.add_run_metadata(run_metadata, 'step%d' % iter_train)
+                    writer.add_summary(summary, iter_train)
 
                 # print(iter_train, accuracy)
             else:
@@ -88,9 +89,10 @@ def run_epoch(session, writer, eval_op, min_cost, model_obj, dict_obj, epoch_num
             epoch_combined_loss += loss
 
             iter_valid += 1
-            if (iter_valid % 5 == 0):
-                # print 'writing'
-                writer.add_summary(summary, iter_valid)
+            if (params.log):
+                if (iter_valid % 5 == 0):
+                    # print 'writing'
+                    writer.add_summary(summary, iter_valid)
 
     print 'Epoch Num: %d, CE loss: %.4f, Accuracy: %.4f' % (epoch_num, epoch_combined_loss, (total_correct / total_instances) * 100)
 

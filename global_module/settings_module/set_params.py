@@ -7,8 +7,8 @@ class ParamsClass:
         self.init_scale = 0.1
         self.learning_rate = 0.01
         self.max_grad_norm = 10
-        self.max_epoch = 20
-        self.max_max_epoch = 50
+        self.max_epoch = 1
+        self.max_max_epoch = 1
         self.rnn_cell = 'gru'  # or 'gru' OR 'lstm'
         self.bidirectional = True
 
@@ -22,6 +22,8 @@ class ParamsClass:
         self.enable_shuffle = False
         self.enable_checkpoint = False
         self.all_lowercase = False
+        self.log = True
+        self.log_step = 100
 
         if mode == 'TE':
             self.enable_shuffle = False
@@ -39,7 +41,7 @@ class ParamsClass:
         self.use_unknown_word = True
         self.use_random_initializer = False
 
-        self.use_attention = False
+        self.use_attention = True
 
         self.indices = None
         self.num_instances = None

@@ -1,11 +1,12 @@
-import tensorflow as tf
-import numpy as np
 import sys
 import time
 
-from global_module.settings_module import set_params, set_dir, set_dict
+import numpy as np
+import tensorflow as tf
+
 from global_module.implementation_module import model
 from global_module.implementation_module import reader
+from global_module.settings_module import set_params, set_dir, set_dict
 
 
 def run_epoch(session, eval_op, model_obj, dict_obj, verbose=False):
@@ -83,9 +84,8 @@ def init_test():
 
     session = tf.Session()
 
-    with tf.name_scope('train'):
-        with tf.variable_scope("model", reuse=None):
-            test_obj = model.DeepAttentionClassifier(params_test, dir_test)
+    with tf.variable_scope("classifier", reuse=None):
+        test_obj = model.DeepAttentionClassifier(params_test, dir_test)
 
     model_saver = tf.train.Saver()
     print('Loading model ...')
