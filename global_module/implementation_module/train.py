@@ -8,9 +8,8 @@ import tensorflow as tf
 
 from global_module.implementation_module import model
 from global_module.implementation_module import reader
-from global_module.settings_module import set_params, set_dir, set_dict
+from global_module.settings_module import set_params, set_dir
 
-# merged = tf.summary.merge_all()
 iter_train = 0
 iter_valid = 0
 
@@ -158,18 +157,11 @@ def run_train(dict_obj):
         # random_uniform_initializer = tf.random_uniform_initializer(-params_train.init_scale, params_train.init_scale)
         xavier_initializer = tf.contrib.layers.xavier_initializer(uniform=True, seed=None, dtype=tf.float32)
 
-        # with tf.name_scope('train'):
         with tf.variable_scope("classifier", reuse=None, initializer=xavier_initializer):
             train_obj = model.DeepAttentionClassifier(params_train, dir_train)
 
-        # train_writer = tf.summary.FileWriter(dir_train.log_path + '/train', session.graph)
-        # valid_writer = tf.summary.FileWriter(dir_valid.log_path + '/valid')
-
         train_writer = tf.summary.FileWriter(train_out_dir, session.graph)
         valid_writer = tf.summary.FileWriter(valid_out_dir)
-
-        # with tf.name_scope('valid'):
-
 
         if not params_train.enable_checkpoint:
             session.run(tf.global_variables_initializer())
@@ -186,9 +178,6 @@ def run_train(dict_obj):
             valid_obj = model.DeepAttentionClassifier(params_valid, dir_valid)
 
         print('**** TF GRAPH INITIALIZED ****')
-
-        # train_writer.add_graph(tf.get_default_graph())
-
 
 
         start_time = time.time()
@@ -216,11 +205,10 @@ def run_train(dict_obj):
         train_writer.close()
         valid_writer.close()
 
-
-def main():
-    dict_obj = set_dict.Dictionary()
-    run_train(dict_obj)
-
-
-if __name__ == "__main__":
-    main()
+# def main():
+#     dict_obj = set_dict.Dictionary()
+#     run_train(dict_obj)
+#
+#
+# if __name__ == "__main__":
+#     main()

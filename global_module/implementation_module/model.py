@@ -72,7 +72,7 @@ class DeepAttentionClassifier:
                     # self.rnn_state = fw_state + bw_state
 
     def apply_attention(self):
-        with tf.variable_scope('attention') as scope:
+        with tf.variable_scope('attention'):
             attention_vector = tf.get_variable(name='attention_vector',
                                                shape=[self.params.ATTENTION_DIM],
                                                dtype=tf.float32)
@@ -83,7 +83,6 @@ class DeepAttentionClassifier:
                                                    kernel_initializer=tf.contrib.layers.xavier_initializer(),
                                                    name='mlp_projection')
 
-            # vec = tf.multiply(mlp_layer_projection, attention_vector)
             attended_vector = tf.tensordot(mlp_layer_projection, attention_vector, axes=[[2], [0]])
             attention_weights = tf.expand_dims(tf.nn.softmax(attended_vector), -1)
 
@@ -93,7 +92,6 @@ class DeepAttentionClassifier:
     def compute_cost(self):
 
         with tf.variable_scope('dense_layers'):
-
             with tf.variable_scope('dropout'):
                 if self.params.use_attention:
                     sentence_vector = tf.nn.dropout(self.attention_output, keep_prob=self.params.keep_prob, name='attention_vector_dropout')
@@ -142,14 +140,12 @@ class DeepAttentionClassifier:
             if (self.params.mode == 'TR' and self.params.log):
                 self.train_loss = tf.summary.scalar('loss_train', self.loss)
                 self.train_accuracy = tf.summary.scalar('acc_train', self.accuracy)
-                # self.train_summaries.append(train_loss)
             elif (self.params.mode == 'VA' and self.params.log):
                 valid_loss = tf.summary.scalar('loss_valid', self.loss)
                 valid_accuracy = tf.summary.scalar('acc_valid', self.accuracy)
                 self.merged_else = tf.summary.merge([valid_loss, valid_accuracy])
             else:
                 self.merged_else = []
-            # self.curr_accuracy = tf.contrib.metrics.accuracy(self.prediction, self.label, name='accuracy')
 
             print 'Loss Computation: DONE'
 
@@ -164,7 +160,6 @@ class DeepAttentionClassifier:
             # optimizer = tf.train.AdadeltaOptimizer(learning_rate=self._lr, epsilon=1e-6, name='optimizer')
             grads_and_vars = optimizer.compute_gradients(self.loss)
             self._train_op = optimizer.apply_gradients(zip(self.grads, tvars), name='apply_gradient')
-            # self.train_summaries.append(self.grads)
 
             if (self.params.log):
                 grad_summaries = []

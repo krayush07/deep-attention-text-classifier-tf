@@ -1,4 +1,5 @@
 import cPickle as pickle
+
 from global_module.settings_module import set_dir
 
 
@@ -18,9 +19,12 @@ def generate_indexed_labels():
     print 'Total classes %d' % (len(label_hash))
 
 
-def main():
+def util():
     generate_indexed_labels()
 
-
-if __name__ == '__main__':
-    main()
+# def main():
+#     generate_indexed_labels()
+#
+#
+# if __name__ == '__main__':
+#     main()

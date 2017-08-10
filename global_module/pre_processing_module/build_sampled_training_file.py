@@ -74,11 +74,16 @@ def sample_train_file(raw_training_file, training_file, threshold):
         len(word_dict), rare_words_count))
 
 
-def main():
+def util():
     raw_training_file = set_dir.Directory('TR').raw_train_path
     training_file = set_dir.Directory('TR').data_filename
     sample_train_file(raw_training_file, training_file, set_params.ParamsClass().sampling_threshold)
 
+# def main():
+#     raw_training_file = set_dir.Directory('TR').raw_train_path
+#     training_file = set_dir.Directory('TR').data_filename
+#     sample_train_file(raw_training_file, training_file, set_params.ParamsClass().sampling_threshold)
 
-if __name__ == '__main__':
-    main()
+
+# if __name__ == '__main__':
+#     main()

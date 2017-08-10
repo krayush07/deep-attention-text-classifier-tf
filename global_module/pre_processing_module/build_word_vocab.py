@@ -163,15 +163,21 @@ def extract_glove_vectors(word_vocab_file, glove_file):
     return len(glove_present_word_vector_dict) + 1
 
 
-def main():
+def util():
     training_file = set_dir.Directory('TR').data_filename
     word_dict = generate_vocab(training_file)
     vocab_size = extract_glove_vectors(set_dir.Directory('TR').word_vocab_dict, gloveDict)
     return vocab_size
 
-
-# extractGloveVectors('glove.300.txt')
-
-
-if __name__ == '__main__':
-    main()
+# def main():
+#     training_file = set_dir.Directory('TR').data_filename
+#     word_dict = generate_vocab(training_file)
+#     vocab_size = extract_glove_vectors(set_dir.Directory('TR').word_vocab_dict, gloveDict)
+#     return vocab_size
+#
+#
+# # extractGloveVectors('glove.300.txt')
+#
+#
+# if __name__ == '__main__':
+#     main()
