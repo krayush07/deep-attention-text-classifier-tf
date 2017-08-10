@@ -7,8 +7,8 @@ class ParamsClass:
         self.init_scale = 0.1
         self.learning_rate = 0.01
         self.max_grad_norm = 10
-        self.max_epoch = 100
-        self.max_max_epoch = 250
+        self.max_epoch = 20
+        self.max_max_epoch = 50
         self.rnn_cell = 'gru'  # or 'gru' OR 'lstm'
         self.bidirectional = True
 
@@ -27,7 +27,7 @@ class ParamsClass:
             self.enable_shuffle = False
 
         self.REG_CONSTANT = 0.01
-        self.MAX_SEQ_LEN = 35
+        self.MAX_SEQ_LEN = 60
         self.EMB_DIM = 300
         self.RNN_HIDDEN_DIM = 256
         self.ATTENTION_DIM = 256
@@ -39,7 +39,7 @@ class ParamsClass:
         self.use_unknown_word = True
         self.use_random_initializer = False
 
-        self.use_attention = True
+        self.use_attention = False
 
         self.indices = None
         self.num_instances = None

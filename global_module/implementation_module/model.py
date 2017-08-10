@@ -25,10 +25,12 @@ class DeepAttentionClassifier:
             self.train()
 
     def create_placeholders(self):
-        self.word_emb_matrix = tf.get_variable("word_embedding_matrix", shape=[self.params.vocab_size, self.params.EMB_DIM], dtype=tf.float32)
-        self.word_input = tf.placeholder(name="word_input", shape=[self.params.batch_size, self.params.MAX_SEQ_LEN], dtype=tf.int32)
-        self.seq_length = tf.placeholder(name="seq_len", shape=[self.params.batch_size], dtype=tf.int32)
-        self.label = tf.placeholder(name="labels", shape=[self.params.batch_size], dtype=tf.int32)
+        with tf.variable_scope('embedding_variable'):
+            self.word_emb_matrix = tf.get_variable("word_embedding_matrix", shape=[self.params.vocab_size, self.params.EMB_DIM], dtype=tf.float32)
+        with tf.variable_scope('placeholders'):
+            self.word_input = tf.placeholder(name="word_input", shape=[self.params.batch_size, self.params.MAX_SEQ_LEN], dtype=tf.int32)
+            self.seq_length = tf.placeholder(name="seq_len", shape=[self.params.batch_size], dtype=tf.int32)
+            self.label = tf.placeholder(name="labels", shape=[self.params.batch_size], dtype=tf.int32)
 
     def create_rnn_cell(self):
         if self.params.rnn_cell == 'lstm':
@@ -41,33 +43,32 @@ class DeepAttentionClassifier:
                 self.rnn_cell = tf.contrib.rnn.DropoutWrapper(self.rnn_cell, input_keep_prob=self.params.keep_prob, output_keep_prob=self.params.keep_prob)
 
     def embedding_layer_lookup(self):
-        self.word_emb_feature = tf.nn.embedding_lookup(self.word_emb_matrix,
-                                                       self.word_input,
-                                                       name='word_emb_feature',
-                                                       validate_indices=True)
+        with tf.variable_scope('lookup'):
+            self.word_emb_feature = tf.nn.embedding_lookup(self.word_emb_matrix,
+                                                           self.word_input,
+                                                           name='word_emb_feature',
+                                                           validate_indices=True)
 
     def run_rnn(self):
-        with tf.variable_scope('rnn_block') as scope:
+        with tf.variable_scope('rnn_block'):
             if not self.params.bidirectional:
                 self.rnn_outputs, self.rnn_state = tf.nn.dynamic_rnn(cell=self.rnn_cell,
                                                                      inputs=self.word_emb_feature,
                                                                      sequence_length=self.seq_length,
-                                                                     dtype=tf.float32,
-                                                                     scope=scope)
+                                                                     dtype=tf.float32)
             else:
                 ((fw_outputs, bw_outputs), (fw_state, bw_state)) = tf.nn.bidirectional_dynamic_rnn(cell_fw=self.rnn_cell,
                                                                                                    cell_bw=self.rnn_cell,
                                                                                                    inputs=self.word_emb_feature,
                                                                                                    sequence_length=self.seq_length,
-                                                                                                   dtype=tf.float32,
-                                                                                                   scope=scope)
-                self.rnn_outputs = tf.concat(values=(fw_outputs, bw_outputs), axis=2)
+                                                                                                   dtype=tf.float32)
+                self.rnn_outputs = tf.concat(values=(fw_outputs, bw_outputs), axis=2, name='concat_output')
 
                 if self.params.rnn_cell == 'lstm':
-                    self.rnn_state = tf.concat(values=(fw_state[1], bw_state[1]), axis=1)
+                    self.rnn_state = tf.concat(values=(fw_state[1], bw_state[1]), axis=1, name='concat_state')
                     # self.rnn_state = fw_state[1] + bw_state[1]
                 elif self.params.rnn_cell == 'gru':
-                    self.rnn_state = tf.concat(values=(fw_state, bw_state), axis=1)
+                    self.rnn_state = tf.concat(values=(fw_state, bw_state), axis=1, name='concat_state')
                     # self.rnn_state = fw_state + bw_state
 
     def apply_attention(self):
@@ -92,48 +93,83 @@ class DeepAttentionClassifier:
     def compute_cost(self):
         with tf.variable_scope('dropout') as scope:
             if self.params.use_attention:
-                sentence_vector = tf.nn.dropout(self.attention_output, keep_prob=self.params.keep_prob)
+                sentence_vector = tf.nn.dropout(self.attention_output, keep_prob=self.params.keep_prob, name='attention_vector_dropout')
             else:
-                sentence_vector = tf.nn.dropout(self.rnn_state, keep_prob=self.params.keep_prob)
+                sentence_vector = tf.nn.dropout(self.rnn_state, keep_prob=self.params.keep_prob, name='rnn_state_dropout')
 
-        output1 = tf.layers.dense(inputs=sentence_vector,
-                                  units=self.params.num_classes,
-                                  kernel_initializer=tf.random_uniform_initializer(minval=-0.1, maxval=0.1),
-                                  bias_initializer=tf.constant_initializer(0.01),
-                                  name='dense1')
+        with tf.variable_scope('dense_layers'):
+            output1 = tf.layers.dense(inputs=sentence_vector,
+                                      units=self.params.num_classes,
+                                      kernel_initializer=tf.random_uniform_initializer(minval=-0.1, maxval=0.1),
+                                      bias_initializer=tf.constant_initializer(0.01),
+                                      name='layer_1')
 
-        logits = tf.layers.dense(inputs=output1,
-                                 units=self.params.num_classes,
-                                 kernel_initializer=tf.contrib.layers.xavier_initializer(),
-                                 bias_initializer=tf.constant_initializer(0.01),
-                                 name='logits')
+        with tf.variable_scope('last_layer'):
+            logits = tf.layers.dense(inputs=output1,
+                                     units=self.params.num_classes,
+                                     kernel_initializer=tf.contrib.layers.xavier_initializer(),
+                                     bias_initializer=tf.constant_initializer(0.01),
+                                     name='logit_layer')
 
-        gold_labels = tf.one_hot(indices=self.label, depth=self.params.num_classes)
-        self.loss = tf.reduce_sum(tf.nn.softmax_cross_entropy_with_logits(labels=gold_labels, logits=logits))
+        with tf.variable_scope('cost_computation'):
+            gold_labels = tf.one_hot(indices=self.label, depth=self.params.num_classes, name='gold_label')
+            self.loss = tf.reduce_sum(tf.nn.softmax_cross_entropy_with_logits(labels=gold_labels, logits=logits), name='reg_loss')
 
-        if self.params.mode == 'TR':
-            tvars = tf.trainable_variables()
-            l2_regularizer = tf.contrib.layers.l2_regularizer(scale=self.params.REG_CONSTANT, scope=None)
-            regularization_penalty = tf.contrib.layers.apply_regularization(l2_regularizer, tvars)
-            reg_penalty_word_emb = tf.contrib.layers.apply_regularization(l2_regularizer, [self.word_emb_matrix])
-            self.loss = self.loss + regularization_penalty - reg_penalty_word_emb
+            with tf.variable_scope('apply_reg'):
+                if self.params.mode == 'TR':
+                    tvars = tf.trainable_variables()
+                    l2_regularizer = tf.contrib.layers.l2_regularizer(scale=self.params.REG_CONSTANT, scope=None)
+                    regularization_penalty = tf.contrib.layers.apply_regularization(l2_regularizer, tvars)
+                    reg_penalty_word_emb = tf.contrib.layers.apply_regularization(l2_regularizer, [self.word_emb_matrix])
+                    self.loss = self.loss + regularization_penalty - reg_penalty_word_emb
 
-        self.prediction = tf.cast(tf.argmax(input=logits, axis=1, name='prediction'), dtype=tf.int32)
-        self.probabilities = tf.nn.softmax(logits, name='softmax_probability')
+            self.prediction = tf.cast(tf.argmax(input=logits, axis=1, name='prediction'), dtype=tf.int32)
+            self.probabilities = tf.nn.softmax(logits, name='softmax_probability')
 
-        # self.curr_accuracy = tf.contrib.metrics.accuracy(self.prediction, self.label, name='accuracy')
+            with tf.name_scope('accuracy'):
+                with tf.name_scope('correct_prediction'):
+                    correct_prediction = tf.equal(tf.cast(tf.argmax(self.prediction, 0), tf.int32), self.label)
+                with tf.name_scope('accuracy'):
+                    self.accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
 
-        print 'Loss Computation: DONE'
+            if (self.params.mode == 'TR'):
+                self.train_loss = tf.summary.scalar('loss_train', self.loss)
+                self.train_accuracy = tf.summary.scalar('acc_train', self.accuracy)
+                # self.train_summaries.append(train_loss)
+            elif (self.params.mode == 'VA'):
+                valid_loss = tf.summary.scalar('loss_valid', self.loss)
+                valid_accuracy = tf.summary.scalar('acc_valid', self.accuracy)
+                self.merged_else = tf.summary.merge([valid_loss, valid_accuracy])
+            # self.curr_accuracy = tf.contrib.metrics.accuracy(self.prediction, self.label, name='accuracy')
+
+            print 'Loss Computation: DONE'
+
+
+
 
     def train(self):
-        self._lr = tf.Variable(0.0, trainable=False)
-        tvars = tf.trainable_variables()
+        with tf.variable_scope('train'):
+            self._lr = tf.Variable(0.0, trainable=False)
+            tvars = tf.trainable_variables()
 
-        self.grads, _ = tf.clip_by_global_norm(tf.gradients(self.loss, tvars), self.params.max_grad_norm, name='global_norm')
-        optimizer = tf.train.GradientDescentOptimizer(self.lr, name='optimizer')
-        # optimizer = tf.train.AdamOptimizer(learning_rate=1e-2, name='optimizer')
-        # optimizer = tf.train.AdadeltaOptimizer(learning_rate=self._lr, epsilon=1e-6, name='optimizer')
-        self._train_op = optimizer.apply_gradients(zip(self.grads, tvars), name='apply_gradient')
+            self.grads, _ = tf.clip_by_global_norm(tf.gradients(self.loss, tvars), self.params.max_grad_norm, name='global_norm')
+            optimizer = tf.train.GradientDescentOptimizer(self.lr, name='optimizer')
+            # optimizer = tf.train.AdamOptimizer(learning_rate=1e-2, name='optimizer')
+            # optimizer = tf.train.AdadeltaOptimizer(learning_rate=self._lr, epsilon=1e-6, name='optimizer')
+            grads_and_vars = optimizer.compute_gradients(self.loss)
+            self._train_op = optimizer.apply_gradients(zip(self.grads, tvars), name='apply_gradient')
+            # self.train_summaries.append(self.grads)
+
+            grad_summaries = []
+            for g, v in grads_and_vars:
+                if g is not None:
+                    grad_hist_summary = tf.summary.histogram("{}/grad/hist".format(v.name), g)
+                    sparsity_summary = tf.summary.scalar("{}/grad/sparsity".format(v.name), tf.nn.zero_fraction(g))
+                    grad_summaries.append(grad_hist_summary)
+                    grad_summaries.append(sparsity_summary)
+            grad_summaries_merged = tf.summary.merge(grad_summaries)
+
+            self.merged_train = tf.summary.merge([self.train_loss, self.train_accuracy, grad_summaries_merged])
 
     def assign_lr(self, session, lr_value):
         session.run(tf.assign(self.lr, lr_value))

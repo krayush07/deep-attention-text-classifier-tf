@@ -1,17 +1,22 @@
-import tensorflow as tf
-import numpy as np
+import os
 import random
 import sys
 import time
 
-from global_module.settings_module import set_params, set_dir, set_dict
+import numpy as np
+import tensorflow as tf
+
 from global_module.implementation_module import model
 from global_module.implementation_module import reader
-
+from global_module.settings_module import set_params, set_dir, set_dict
 
 # merged = tf.summary.merge_all()
+iter_train = 0
+iter_valid = 0
 
-def run_epoch(session, eval_op, min_cost, model_obj, dict_obj, epoch_num, verbose=False):
+
+def run_epoch(session, writer, eval_op, min_cost, model_obj, dict_obj, epoch_num, verbose=False):
+    global summary, iter_train, iter_valid
     epoch_combined_loss = 0.0
     total_correct = 0.0
     total_instances = 0.0
@@ -29,16 +34,63 @@ def run_epoch(session, eval_op, min_cost, model_obj, dict_obj, epoch_num, verbos
         feed_dict[model_obj.seq_length] = length_arr
         feed_dict[model_obj.label] = label_arr
 
-        loss, prediction, probabilities, _ = session.run([model_obj.loss,
-                                                          model_obj.prediction,
-                                                          model_obj.probabilities,
-                                                          # model_obj.curr_accuracy,
-                                                          eval_op],
-                                                         feed_dict=feed_dict)
+        if (model_obj.params.mode == 'TR'):
 
-        total_correct += np.sum(prediction == label_arr)
-        total_instances += params.batch_size
-        epoch_combined_loss += loss
+            iter_train += 1
+            if (iter_train % 11 == 0):
+                # print 'writing'
+
+                run_options = tf.RunOptions(trace_level=tf.RunOptions.FULL_TRACE)
+                run_metadata = tf.RunMetadata()
+
+                summary, loss, prediction, probabilities, accuracy, _ = session.run([model_obj.merged_train,
+                                                                                     model_obj.loss,
+                                                                                     model_obj.prediction,
+                                                                                     model_obj.probabilities,
+                                                                                     model_obj.accuracy,
+                                                                                     eval_op],
+                                                                                    options=run_options,
+                                                                                    run_metadata=run_metadata,
+                                                                                    feed_dict=feed_dict)
+
+                total_correct += np.sum(prediction == label_arr)
+                total_instances += params.batch_size
+                epoch_combined_loss += loss
+
+                writer.add_run_metadata(run_metadata, 'step%d' % iter_train)
+                writer.add_summary(summary, iter_train)
+
+                # print(iter_train, accuracy)
+            else:
+                summary, loss, prediction, probabilities, _ = session.run([model_obj.merged_train,
+                                                                           model_obj.loss,
+                                                                           model_obj.prediction,
+                                                                           model_obj.probabilities,
+                                                                           # model_obj.curr_accuracy,
+                                                                           eval_op],
+                                                                          feed_dict=feed_dict)
+
+                total_correct += np.sum(prediction == label_arr)
+                total_instances += params.batch_size
+                epoch_combined_loss += loss
+
+        else:
+            summary, loss, prediction, probabilities, _ = session.run([model_obj.merged_else,
+                                                                       model_obj.loss,
+                                                                       model_obj.prediction,
+                                                                       model_obj.probabilities,
+                                                                       # model_obj.curr_accuracy,
+                                                                       eval_op],
+                                                                      feed_dict=feed_dict)
+
+            total_correct += np.sum(prediction == label_arr)
+            total_instances += params.batch_size
+            epoch_combined_loss += loss
+
+            iter_valid += 1
+            if (iter_valid % 5 == 0):
+                # print 'writing'
+                writer.add_summary(summary, iter_valid)
 
     print 'Epoch Num: %d, CE loss: %.4f, Accuracy: %.4f' % (epoch_num, epoch_combined_loss, (total_correct / total_instances) * 100)
 
@@ -51,7 +103,7 @@ def run_epoch(session, eval_op, min_cost, model_obj, dict_obj, epoch_num, verbos
             model_saver.save(session, save_path=dir_obj.model_path + dir_obj.model_name, latest_filename=dir_obj.latest_checkpoint)
             print('==== Model saved! ====')
 
-    return epoch_combined_loss, min_cost, min_cost
+    return epoch_combined_loss, min_cost
 
 
 def get_length(filename):
@@ -93,21 +145,29 @@ def run_train(dict_obj):
 
     print('***** INITIALIZING TF GRAPH *****')
 
+    timestamp = str(int(time.time()))
+    train_out_dir = os.path.abspath(os.path.join(dir_train.log_path, "train", timestamp))
+    valid_out_dir = os.path.abspath(os.path.join(dir_train.log_path, "valid", timestamp))
+    print("Writing to {}\n".format(train_out_dir))
+
     with tf.Graph().as_default(), tf.Session() as session:
-        # train_writer = tf.summary.FileWriter(dir_train.log_path + '/train', session.graph)
-        # test_writer = tf.summary.FileWriter(dir_train.log_path + '/test')
 
         # random_normal_initializer = tf.random_normal_initializer()
         # random_uniform_initializer = tf.random_uniform_initializer(-params_train.init_scale, params_train.init_scale)
         xavier_initializer = tf.contrib.layers.xavier_initializer(uniform=True, seed=None, dtype=tf.float32)
 
-        with tf.name_scope('train'):
-            with tf.variable_scope("model", reuse=None, initializer=xavier_initializer):
-                train_obj = model.DeepAttentionClassifier(params_train, dir_train)
+        # with tf.name_scope('train'):
+        with tf.variable_scope("classifier", reuse=None, initializer=xavier_initializer):
+            train_obj = model.DeepAttentionClassifier(params_train, dir_train)
 
-        with tf.name_scope('valid'):
-            with tf.variable_scope("model", reuse=True, initializer=xavier_initializer):
-                valid_obj = model.DeepAttentionClassifier(params_valid, dir_valid)
+        # train_writer = tf.summary.FileWriter(dir_train.log_path + '/train', session.graph)
+        # valid_writer = tf.summary.FileWriter(dir_valid.log_path + '/valid')
+
+        train_writer = tf.summary.FileWriter(train_out_dir, session.graph)
+        valid_writer = tf.summary.FileWriter(valid_out_dir)
+
+        # with tf.name_scope('valid'):
+
 
         if not params_train.enable_checkpoint:
             session.run(tf.global_variables_initializer())
@@ -120,9 +180,14 @@ def run_train(dict_obj):
         elif not params_train.use_random_initializer:
             session.run(tf.assign(train_obj.word_emb_matrix, word_emb_matrix, name="word_embedding_matrix"))
 
+        with tf.variable_scope("classifier", reuse=True, initializer=xavier_initializer):
+            valid_obj = model.DeepAttentionClassifier(params_valid, dir_valid)
+
         print('**** TF GRAPH INITIALIZED ****')
 
         # train_writer.add_graph(tf.get_default_graph())
+
+
 
         start_time = time.time()
         for i in range(params_train.max_max_epoch):
@@ -134,10 +199,10 @@ def run_train(dict_obj):
             print('\n++++++++=========+++++++\n')
 
             print("Epoch: %d Learning rate: %.5f" % (i + 1, session.run(train_obj.lr)))
-            train_loss, _, summary = run_epoch(session, train_obj.train_op, min_loss, train_obj, dict_obj, i, verbose=True)
+            train_loss, _ = run_epoch(session, train_writer, train_obj.train_op, min_loss, train_obj, dict_obj, i, verbose=True)
             print("Epoch: %d Train loss: %.3f" % (i + 1, train_loss))
 
-            valid_loss, curr_loss, summary = run_epoch(session, tf.no_op(), min_loss, valid_obj, dict_obj, i)
+            valid_loss, curr_loss = run_epoch(session, valid_writer, tf.no_op(), min_loss, valid_obj, dict_obj, i)
             if curr_loss < min_loss:
                 min_loss = curr_loss
 
@@ -146,8 +211,8 @@ def run_train(dict_obj):
             curr_time = time.time()
             print('1 epoch run takes ' + str(((curr_time - start_time) / (i + 1)) / 60) + ' minutes.')
 
-            # train_writer.close()
-            # test_writer.close()
+        train_writer.close()
+        valid_writer.close()
 
 
 def main():
