@@ -123,7 +123,7 @@ class DeepAttentionClassifier:
         with tf.variable_scope('compute_loss'):
             with tf.variable_scope('softmax_loss'):
                 gold_labels = tf.one_hot(indices=self.label, depth=self.params.num_classes, name='gold_label')
-                softmax_loss = tf.reduce_sum(tf.nn.softmax_cross_entropy_with_logits(labels=gold_labels, logits=logits), name='reg_loss')
+                softmax_loss = tf.reduce_sum(tf.nn.softmax_cross_entropy_with_logits(labels=gold_labels, logits=logits), name='softmax_loss')
 
             with tf.variable_scope('reg_loss'):
                 if self.params.mode == 'TR':
@@ -163,10 +163,10 @@ class DeepAttentionClassifier:
 
             if self.params.log:
                 grad_summaries = []
-                for g, v in grads_and_vars:
-                    if g is not None:
-                        grad_hist_summary = tf.summary.histogram("{}/grad/hist".format(v.name), g)
-                        sparsity_summary = tf.summary.scalar("{}/grad/sparsity".format(v.name), tf.nn.zero_fraction(g))
+                for grad, var in grads_and_vars:
+                    if grad is not None:
+                        grad_hist_summary = tf.summary.histogram("{}/grad/hist".format(var.name), grad)
+                        sparsity_summary = tf.summary.scalar("{}/grad/sparsity".format(var.name), tf.nn.zero_fraction(grad))
                         grad_summaries.append(grad_hist_summary)
                         grad_summaries.append(sparsity_summary)
                 grad_summaries_merged = tf.summary.merge(grad_summaries)

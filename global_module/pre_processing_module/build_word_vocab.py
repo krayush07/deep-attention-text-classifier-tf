@@ -41,7 +41,7 @@ def generate_vocab(training_file):
         size = len(string)
         tokenized_training_string = ''
         for j in range(size):
-            string[j] = re.sub(r'#[0-9]+', r'', string[j].strip())
+            # string[j] = re.sub(r'#[0-9]+', r'', string[j].strip())
             # tokenized_sent = nltk.word_tokenize((string[j]).decode('utf-8'))
             # tokenized_sent.append('<eos>')
             # tokenized_sent = string[j].split(" ")
