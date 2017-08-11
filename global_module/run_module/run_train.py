@@ -18,8 +18,7 @@ def load_dictionary():
 def call_train(dict_obj):
     """
     Utility function to execute main training module
-    :param vocab_size:
-    :param dict_obj:
+    :param dict_obj: dictionary object
     :return: None
     """
     train.run_train(dict_obj)
@@ -32,7 +31,7 @@ def train_util():
     :return: None
     """
     build_sampled_training_file.util()
-    vocab_size = build_word_vocab.util()
+    build_word_vocab.util()
     generate_label_file.util()
     dict_obj = load_dictionary()
     call_train(dict_obj)

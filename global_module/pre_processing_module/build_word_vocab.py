@@ -96,7 +96,7 @@ def extract_glove_vectors(word_vocab_file, glove_file):
 
     for key, value in word_vocab_dict.items():
 
-        if (config.all_lowercase):
+        if config.all_lowercase:
             if key.lower() in glove_vocab_dict:
                 key = key.lower()
             elif key in glove_vocab_dict:
@@ -165,7 +165,7 @@ def extract_glove_vectors(word_vocab_file, glove_file):
 
 def util():
     training_file = set_dir.Directory('TR').data_filename
-    word_dict = generate_vocab(training_file)
+    generate_vocab(training_file)
     vocab_size = extract_glove_vectors(set_dir.Directory('TR').word_vocab_dict, gloveDict)
     return vocab_size
 

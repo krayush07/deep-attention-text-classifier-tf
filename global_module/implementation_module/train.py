@@ -28,15 +28,15 @@ def run_epoch(session, writer, eval_op, min_cost, model_obj, dict_obj, epoch_num
 
     for step, (input_seq_arr, length_arr, label_arr) \
             in enumerate(reader.data_iterator(params, data_filename, label_filename, model_obj.params.indices, dict_obj)):
-        feed_dict = {}
-        feed_dict[model_obj.word_input] = input_seq_arr
-        feed_dict[model_obj.seq_length] = length_arr
-        feed_dict[model_obj.label] = label_arr
 
-        if (model_obj.params.mode == 'TR'):
+        feed_dict = {model_obj.word_input: input_seq_arr,
+                     model_obj.seq_length: length_arr,
+                     model_obj.label: label_arr}
+
+        if model_obj.params.mode == 'TR':
 
             iter_train += 1
-            if (iter_train % params.log_step == 0):
+            if iter_train % params.log_step == 0:
                 # print 'writing'
 
                 run_options = tf.RunOptions(trace_level=tf.RunOptions.FULL_TRACE)
@@ -56,11 +56,11 @@ def run_epoch(session, writer, eval_op, min_cost, model_obj, dict_obj, epoch_num
                 total_instances += params.batch_size
                 epoch_combined_loss += loss
 
-                if (params.log):
+                if params.log:
                     writer.add_run_metadata(run_metadata, 'step%d' % iter_train)
                     writer.add_summary(summary, iter_train)
 
-                # print(iter_train, accuracy)
+                    # print(iter_train, accuracy)
             else:
                 summary, loss, prediction, probabilities, _ = session.run([model_obj.merged_train,
                                                                            model_obj.loss,
@@ -88,8 +88,8 @@ def run_epoch(session, writer, eval_op, min_cost, model_obj, dict_obj, epoch_num
             epoch_combined_loss += loss
 
             iter_valid += 1
-            if (params.log):
-                if (iter_valid % 5 == 0):
+            if params.log:
+                if iter_valid % 5 == 0:
                     # print 'writing'
                     writer.add_summary(summary, iter_valid)
 
@@ -178,7 +178,6 @@ def run_train(dict_obj):
             valid_obj = model.DeepAttentionClassifier(params_valid, dir_valid)
 
         print('**** TF GRAPH INITIALIZED ****')
-
 
         start_time = time.time()
         for i in range(params_train.max_max_epoch):

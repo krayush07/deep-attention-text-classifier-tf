@@ -6,7 +6,7 @@ from global_module.settings_module import set_params, set_dict
 def get_index_string(utt, word_dict, params):
     index_string = ''
     for each_token in utt.split():
-        if (params.all_lowercase):
+        if params.all_lowercase:
             if each_token.lower() in word_dict:
                 each_token = each_token.lower()
             elif each_token in word_dict:
@@ -71,7 +71,7 @@ def generate_id_map(params, data_filename, label_filename, index_arr, dict_obj):
         curr_seq_token_len, curr_seq_token_id = get_index_string(curr_line, dict_obj.word_dict, params)
         curr_seq_token_string = format_string(curr_seq_token_id, curr_seq_token_len, params.MAX_SEQ_LEN)
 
-        if (curr_seq_token_len > params.MAX_SEQ_LEN):
+        if curr_seq_token_len > params.MAX_SEQ_LEN:
             curr_seq_token_len = params.MAX_SEQ_LEN
 
         input_seq_arr.append(curr_seq_token_string)

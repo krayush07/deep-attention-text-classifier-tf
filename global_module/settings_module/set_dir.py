@@ -40,11 +40,6 @@ class Directory:
             self.data_filename = self.data_path + '/tokenized_test.txt'
             self.label_filename = self.data_path + '/label_test.txt'
 
-        '''Directory to utility dataset'''
-        self.goal_train_path = self.data_path + '/goal_train.txt'  # goal training file
-        self.goal_test_path = self.data_path + '/goal_test.txt'
-        self.goal_valid_path = self.data_path + '/goal_test.txt'
-
         ''' ****************** Directory to saving or loading a model ********************** '''''
         self.latest_checkpoint = 'checkpoint'
         self.model_name = '/text_classifier.ckpt'  # model name .ckpt is the model extension

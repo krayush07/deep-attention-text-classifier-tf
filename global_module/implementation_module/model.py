@@ -137,10 +137,10 @@ class DeepAttentionClassifier:
 
             self.loss = softmax_loss + reg_loss
 
-            if (self.params.mode == 'TR' and self.params.log):
+            if self.params.mode == 'TR' and self.params.log:
                 self.train_loss = tf.summary.scalar('loss_train', self.loss)
                 self.train_accuracy = tf.summary.scalar('acc_train', self.accuracy)
-            elif (self.params.mode == 'VA' and self.params.log):
+            elif self.params.mode == 'VA' and self.params.log:
                 valid_loss = tf.summary.scalar('loss_valid', self.loss)
                 valid_accuracy = tf.summary.scalar('acc_valid', self.accuracy)
                 self.merged_else = tf.summary.merge([valid_loss, valid_accuracy])
@@ -161,7 +161,7 @@ class DeepAttentionClassifier:
             grads_and_vars = optimizer.compute_gradients(self.loss)
             self._train_op = optimizer.apply_gradients(zip(self.grads, tvars), name='apply_gradient')
 
-            if (self.params.log):
+            if self.params.log:
                 grad_summaries = []
                 for g, v in grads_and_vars:
                     if g is not None:

@@ -24,10 +24,10 @@ def run_epoch(session, eval_op, model_obj, dict_obj, verbose=False):
 
     for step, (input_seq_arr, length_arr, label_arr) \
             in enumerate(reader.data_iterator(params, data_filename, label_filename, model_obj.params.indices, dict_obj)):
-        feed_dict = {}
-        feed_dict[model_obj.word_input] = input_seq_arr
-        feed_dict[model_obj.seq_length] = length_arr
-        feed_dict[model_obj.label] = label_arr
+
+        feed_dict = {model_obj.word_input: input_seq_arr,
+                     model_obj.seq_length: length_arr,
+                     model_obj.label: label_arr}
 
         loss, prediction, probabilities, _ = session.run([model_obj.loss,
                                                           model_obj.prediction,
@@ -74,8 +74,6 @@ def init_test():
     params_test.batch_size = 1
     params_test.num_classes = len(dict_obj.label_dict)
 
-    min_loss = sys.float_info.max
-
     word_emb_path = dir_train.word_embedding
     word_emb_matrix = np.float32(np.genfromtxt(word_emb_path, delimiter=' '))
     params_train.vocab_size = params_test.vocab_size = len(word_emb_matrix)
@@ -96,9 +94,7 @@ def init_test():
     return session, test_obj
 
 
-def run_test(dict_obj):
-    session, test_obj = init_test()
-
+def run_test(session, test_obj, dict_obj):
     start_time = time.time()
 
     print("Starting test computation\n")
@@ -107,11 +103,11 @@ def run_test(dict_obj):
     curr_time = time.time()
     print('1 epoch run takes ' + str(((curr_time - start_time) / 60)) + ' minutes.')
 
-
-def main():
-    dict_obj = set_dict.Dictionary()
-    run_test(dict_obj)
-
-
-if __name__ == "__main__":
-    main()
+# def main():
+#     session, test_obj = init_test()
+#     dict_obj = set_dict.Dictionary()
+#     run_test(session, test_obj, dict_obj)
+#
+#
+# if __name__ == "__main__":
+#     main()
