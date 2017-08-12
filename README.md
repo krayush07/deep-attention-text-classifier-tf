@@ -1,4 +1,4 @@
-# Deep-Attention Text Classifier in Tensorflow
+# [Deep-Attention Text Classifier in Tensorflow](https://krayush07.github.io/deep-attention-text-classifier-tf/)
 This repository contains code for text classification using attention mechanism in Tensorflow with tensorboard visualization.
 
 <br/>
