@@ -1,6 +1,7 @@
 .idea/
 *.pyc
-global_module/utility_dir/folder1/data/90_10_split
-global_module/utility_dir/folder1/data/git_data
-global_module/utility_dir/folder1/data/kaggle
+#global_module/utility_dir/folder1/data/90_10_split
+#global_module/utility_dir/folder1/data/git_data
+#global_module/utility_dir/folder1/data/kaggle
 global_module/utility_dir/folder1/output
+global_module/utility_dir/folder1/data
