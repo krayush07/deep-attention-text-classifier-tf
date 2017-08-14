@@ -53,6 +53,7 @@ class Directory:
         self.word_vocab_dict = self.vocab_path + '/word_vocab.pkl'
         self.glove_present_training_word_vocab = self.vocab_path + '/glove_present_training_word_vocab.pkl'
         self.label_map_dict = self.vocab_path + '/label_map.pkl'
+        self.word_emb_tsv = self.log_path + '/word_metadata.tsv'
 
         ''' ****************** Directory for test model ********************** '''''
         self.test_model_name = '/text_classifier.ckpt'

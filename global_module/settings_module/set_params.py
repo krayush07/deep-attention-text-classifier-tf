@@ -8,8 +8,8 @@ class ParamsClass:
         self.learning_rate = 0.01
         self.max_grad_norm = 10
         self.max_epoch = 1
-        self.max_max_epoch = 1
-        self.rnn_cell = 'gru'  # or 'gru' OR 'lstm'
+        self.max_max_epoch = 2
+        self.rnn_cell = 'lstm'  # or 'gru' OR 'lstm'
         self.bidirectional = True
 
         if mode == 'TR':
@@ -21,15 +21,15 @@ class ParamsClass:
 
         self.enable_shuffle = False
         self.enable_checkpoint = False
-        self.all_lowercase = False
+        self.all_lowercase = True
         self.log = True
-        self.log_step = 100
+        self.log_step = 9
 
         if mode == 'TE':
             self.enable_shuffle = False
 
-        self.REG_CONSTANT = 0.01
-        self.MAX_SEQ_LEN = 60
+        self.REG_CONSTANT = 0.001
+        self.MAX_SEQ_LEN = 35
         self.EMB_DIM = 300
         self.RNN_HIDDEN_DIM = 256
         self.ATTENTION_DIM = 256
@@ -46,4 +46,4 @@ class ParamsClass:
         self.indices = None
         self.num_instances = None
         self.num_classes = None
-        self.sampling_threshold = 2
+        self.sampling_threshold = 1

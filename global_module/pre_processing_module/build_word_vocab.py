@@ -18,9 +18,10 @@ import re
 
 from global_module.settings_module import set_dir, set_params
 
-dataDir = set_dir.Directory('TR').data_path
-vocabDir = set_dir.Directory('TR').vocab_path
-gloveDict = set_dir.Directory('TR').glove_path
+dirObj = set_dir.Directory('TR')
+dataDir = dirObj.data_path
+vocabDir = dirObj.vocab_path
+gloveDict = dirObj.glove_path
 config = set_params.ParamsClass('TR')
 
 
@@ -160,6 +161,18 @@ def extract_glove_vectors(word_vocab_file, glove_file):
 
     glove_present_training_word_vocab.close()
     # return(len(glove_present_word_vector_dict)+2)
+
+    #####
+    #   WORD METADATA
+    ####
+    meta_file = open(dirObj.word_emb_tsv, 'w')
+    meta_file.write('Word' + '\t' + 'Id' + '\n')
+    meta_file.write('PAD' + '\t' + '0' + '\n')
+    for key, value in glove_present_training_word_vocab_dict.iteritems():
+        meta_file.write(key + '\t' + str(value) + '\n')
+    meta_file.close()
+    #####
+
     return len(glove_present_word_vector_dict) + 1
 
 

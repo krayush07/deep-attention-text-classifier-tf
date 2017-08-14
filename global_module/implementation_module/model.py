@@ -25,7 +25,7 @@ class DeepAttentionClassifier:
             self.train()
 
     def create_placeholders(self):
-        with tf.variable_scope('embedding_variable'):
+        with tf.variable_scope('emb_var'):
             self.word_emb_matrix = tf.get_variable("word_embedding_matrix", shape=[self.params.vocab_size, self.params.EMB_DIM], dtype=tf.float32)
         with tf.variable_scope('placeholders'):
             self.word_input = tf.placeholder(name="word_input", shape=[self.params.batch_size, self.params.MAX_SEQ_LEN], dtype=tf.int32)
@@ -81,7 +81,7 @@ class DeepAttentionClassifier:
                                                    units=self.params.ATTENTION_DIM,
                                                    activation=tf.nn.tanh,
                                                    kernel_initializer=tf.contrib.layers.xavier_initializer(),
-                                                   name='mlp_projection')
+                                                   name='fc_attn')
 
             attended_vector = tf.tensordot(mlp_layer_projection, attention_vector, axes=[[2], [0]])
             attention_weights = tf.expand_dims(tf.nn.softmax(attended_vector), -1)
@@ -102,25 +102,24 @@ class DeepAttentionClassifier:
                                       units=self.params.num_classes,
                                       kernel_initializer=tf.random_uniform_initializer(minval=-0.1, maxval=0.1),
                                       bias_initializer=tf.constant_initializer(0.01),
-                                      name='layer_1')
+                                      name='fc_1')
 
         with tf.variable_scope('last_layer'):
             logits = tf.layers.dense(inputs=output1,
                                      units=self.params.num_classes,
                                      kernel_initializer=tf.contrib.layers.xavier_initializer(),
                                      bias_initializer=tf.constant_initializer(0.01),
-                                     name='logit_layer')
+                                     name='fc_logit')
 
-            self.prediction = tf.cast(tf.argmax(input=logits, axis=1, name='prediction'), dtype=tf.int32)
-            self.probabilities = tf.nn.softmax(logits, name='softmax_probability')
-
-            with tf.name_scope('accuracy'):
-                with tf.name_scope('correct_prediction'):
-                    correct_prediction = tf.equal(tf.cast(tf.argmax(self.prediction, 0), tf.int32), self.label)
+            with tf.name_scope('pred_acc'):
+                with tf.name_scope('prediction'):
+                    self.probabilities = tf.nn.softmax(logits, name='softmax_probability')
+                    self.prediction = tf.cast(tf.argmax(input=self.probabilities, axis=1, name='prediction'), dtype=tf.int32)
+                    correct_prediction = tf.equal(self.prediction, self.label)
                 with tf.name_scope('accuracy'):
                     self.accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
 
-        with tf.variable_scope('compute_loss'):
+        with tf.variable_scope('loss'):
             with tf.variable_scope('softmax_loss'):
                 gold_labels = tf.one_hot(indices=self.label, depth=self.params.num_classes, name='gold_label')
                 softmax_loss = tf.reduce_sum(tf.nn.softmax_cross_entropy_with_logits(labels=gold_labels, logits=logits), name='softmax_loss')
@@ -151,19 +150,24 @@ class DeepAttentionClassifier:
 
     def train(self):
         with tf.variable_scope('train'):
-            self._lr = tf.Variable(0.0, trainable=False)
-            tvars = tf.trainable_variables()
+            self._lr = tf.Variable(0.0, trainable=False, name='learning_rate')
 
-            self.grads, _ = tf.clip_by_global_norm(tf.gradients(self.loss, tvars), self.params.max_grad_norm, name='global_norm')
-            optimizer = tf.train.GradientDescentOptimizer(self.lr, name='optimizer')
-            # optimizer = tf.train.AdamOptimizer(learning_rate=1e-2, name='optimizer')
-            # optimizer = tf.train.AdadeltaOptimizer(learning_rate=self._lr, epsilon=1e-6, name='optimizer')
-            grads_and_vars = optimizer.compute_gradients(self.loss)
-            self._train_op = optimizer.apply_gradients(zip(self.grads, tvars), name='apply_gradient')
+            with tf.variable_scope('optimize'):
+
+                tvars = tf.trainable_variables()
+                grads = tf.gradients(self.loss, tvars)
+                grads, _ = tf.clip_by_global_norm(grads, clip_norm=self.params.max_grad_norm)
+                grad_var_pairs = zip(grads, tvars)
+
+                optimizer = tf.train.GradientDescentOptimizer(self.lr, name='sgd')
+                self._train_op = optimizer.apply_gradients(grad_var_pairs, name='apply_grad')
+                # optimizer = tf.train.AdamOptimizer(learning_rate=1e-2, name='optimizer')
+                # optimizer = tf.train.AdadeltaOptimizer(learning_rate=self._lr, epsilon=1e-6, name='optimizer')
+                # self._train_op = optimizer.apply_gradients(zip(self.grads, tvars), name='apply_grad')
 
             if self.params.log:
                 grad_summaries = []
-                for grad, var in grads_and_vars:
+                for grad, var in grad_var_pairs:
                     if grad is not None:
                         grad_hist_summary = tf.summary.histogram("{}/grad/hist".format(var.name), grad)
                         sparsity_summary = tf.summary.scalar("{}/grad/sparsity".format(var.name), tf.nn.zero_fraction(grad))

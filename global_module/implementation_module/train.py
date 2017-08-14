@@ -60,13 +60,13 @@ def run_epoch(session, writer, eval_op, min_cost, model_obj, dict_obj, epoch_num
                     writer.add_run_metadata(run_metadata, 'step%d' % iter_train)
                     writer.add_summary(summary, iter_train)
 
-                    # print(iter_train, accuracy)
+                    print(iter_train, accuracy)
             else:
-                summary, loss, prediction, probabilities, _ = session.run([model_obj.merged_train,
+                summary, loss, prediction, probabilities, accuracy, _ = session.run([model_obj.merged_train,
                                                                            model_obj.loss,
                                                                            model_obj.prediction,
                                                                            model_obj.probabilities,
-                                                                           # model_obj.curr_accuracy,
+                                                                           model_obj.accuracy,
                                                                            eval_op],
                                                                           feed_dict=feed_dict)
 
@@ -75,11 +75,11 @@ def run_epoch(session, writer, eval_op, min_cost, model_obj, dict_obj, epoch_num
                 epoch_combined_loss += loss
 
         else:
-            summary, loss, prediction, probabilities, _ = session.run([model_obj.merged_else,
+            summary, loss, prediction, probabilities, accuracy, _ = session.run([model_obj.merged_else,
                                                                        model_obj.loss,
                                                                        model_obj.prediction,
                                                                        model_obj.probabilities,
-                                                                       # model_obj.curr_accuracy,
+                                                                       model_obj.accuracy,
                                                                        eval_op],
                                                                       feed_dict=feed_dict)
 
@@ -101,7 +101,9 @@ def run_epoch(session, writer, eval_op, min_cost, model_obj, dict_obj, epoch_num
 
         if epoch_combined_loss < min_cost:
             min_cost = epoch_combined_loss
-            model_saver.save(session, save_path=dir_obj.model_path + dir_obj.model_name, latest_filename=dir_obj.latest_checkpoint)
+            model_saver.save(session,
+                             save_path=dir_obj.log_path + '/model.ckpt',
+                             latest_filename=dir_obj.latest_checkpoint)
             print('==== Model saved! ====')
 
     return epoch_combined_loss, min_cost
