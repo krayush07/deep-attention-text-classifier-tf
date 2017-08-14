@@ -1,6 +1,6 @@
 import sys
 
-root_folder = '/home/aykumar/aykumar_home/aykumar_dir/multi_view/global_module/utility_dir/vanguard/output/with_resp/90_10_new_architecture_1024_pool_20_5_12345/'
+root_folder = '/home/aykumar/aykumar_home/aykumar_dir/with_resp/90_10_new_architecture_1024_pool_20_5_12345/'
 
 cost_file = open(root_folder + 'test_cost_4neg.txt', 'r')
 output = open(root_folder + 'index.txt', 'w')
