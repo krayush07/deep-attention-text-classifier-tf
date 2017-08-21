@@ -105,7 +105,7 @@ class DeepAttentionClassifier:
                                       name='fc_1')
 
         with tf.variable_scope('last_layer'):
-            logits = tf.layers.dense(inputs=output1,
+            self.logits = tf.layers.dense(inputs=output1,
                                      units=self.params.num_classes,
                                      kernel_initializer=tf.contrib.layers.xavier_initializer(),
                                      bias_initializer=tf.constant_initializer(0.01),
@@ -113,7 +113,7 @@ class DeepAttentionClassifier:
 
             with tf.name_scope('pred_acc'):
                 with tf.name_scope('prediction'):
-                    self.probabilities = tf.nn.softmax(logits, name='softmax_probability')
+                    self.probabilities = tf.nn.softmax(self.logits, name='softmax_probability')
                     self.prediction = tf.cast(tf.argmax(input=self.probabilities, axis=1, name='prediction'), dtype=tf.int32)
                     correct_prediction = tf.equal(self.prediction, self.label)
                 with tf.name_scope('accuracy'):
@@ -122,7 +122,7 @@ class DeepAttentionClassifier:
         with tf.variable_scope('loss'):
             with tf.variable_scope('softmax_loss'):
                 gold_labels = tf.one_hot(indices=self.label, depth=self.params.num_classes, name='gold_label')
-                softmax_loss = tf.reduce_sum(tf.nn.softmax_cross_entropy_with_logits(labels=gold_labels, logits=logits), name='softmax_loss')
+                softmax_loss = tf.reduce_sum(tf.nn.softmax_cross_entropy_with_logits(labels=gold_labels, logits=self.logits), name='softmax_loss')
 
             with tf.variable_scope('reg_loss'):
                 if self.params.mode == 'TR':

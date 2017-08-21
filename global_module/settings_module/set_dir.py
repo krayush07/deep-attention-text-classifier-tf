@@ -20,10 +20,13 @@ class Directory:
         self.model_path = self.curr_utility_dir + '/models'
         self.output_path = self.curr_utility_dir + '/output'
         self.log_path = self.curr_utility_dir + '/log_dir'
+        self.log_emb_path = self.log_path + '/emb_viz'
 
         self.makedir(self.vocab_path)
         self.makedir(self.model_path)
         self.makedir(self.output_path)
+        self.makedir(self.log_path)
+        self.makedir(self.log_emb_path)
 
         self.glove_path = '/home/aykumar/aykumar_home/glove_dir' + '/glove_dict.pkl'
 
@@ -53,7 +56,7 @@ class Directory:
         self.word_vocab_dict = self.vocab_path + '/word_vocab.pkl'
         self.glove_present_training_word_vocab = self.vocab_path + '/glove_present_training_word_vocab.pkl'
         self.label_map_dict = self.vocab_path + '/label_map.pkl'
-        self.word_emb_tsv = self.log_path + '/word_metadata.tsv'
+        self.word_emb_tsv = self.log_emb_path + '/word_metadata.tsv'
 
         ''' ****************** Directory for test model ********************** '''''
         self.test_model_name = '/text_classifier.ckpt'

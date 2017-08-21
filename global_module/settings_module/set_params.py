@@ -7,8 +7,8 @@ class ParamsClass:
         self.init_scale = 0.1
         self.learning_rate = 0.01
         self.max_grad_norm = 10
-        self.max_epoch = 1
-        self.max_max_epoch = 2
+        self.max_epoch = 50
+        self.max_max_epoch = 100
         self.rnn_cell = 'lstm'  # or 'gru' OR 'lstm'
         self.bidirectional = True
 

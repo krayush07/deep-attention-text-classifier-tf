@@ -102,7 +102,7 @@ def run_epoch(session, writer, eval_op, min_cost, model_obj, dict_obj, epoch_num
         if epoch_combined_loss < min_cost:
             min_cost = epoch_combined_loss
             model_saver.save(session,
-                             save_path=dir_obj.log_path + '/model.ckpt',
+                             save_path=dir_obj.model_path + dir_obj.model_name,
                              latest_filename=dir_obj.latest_checkpoint)
             print('==== Model saved! ====')
 

@@ -17,6 +17,7 @@ import random
 import re
 
 from global_module.settings_module import set_dir, set_params
+import collections
 
 dirObj = set_dir.Directory('TR')
 dataDir = dirObj.data_path
@@ -26,7 +27,7 @@ config = set_params.ParamsClass('TR')
 
 
 def generate_vocab(training_file):
-    word_dict = {}
+    word_dict = collections.OrderedDict()
     word_counter = 2
     max_sequence_length = 0
 
@@ -51,7 +52,7 @@ def generate_vocab(training_file):
             tokenized_training_string += tokenized_string + '\t'
 
             for token in tokenized_sent:
-                if token not in word_dict:
+                if (word_dict.has_key(token) == False):
                     word_dict[token] = word_counter
                     word_counter += 1
 
@@ -59,7 +60,7 @@ def generate_vocab(training_file):
         tokenized_training_file.write(tokenized_training_string.rstrip('\t'))
         tokenized_training_file.write('\n')
         curr_seq_length = len(tokenized_training_string.split())
-        if curr_seq_length > max_sequence_length:
+        if (curr_seq_length > max_sequence_length):
             max_sequence_length = curr_seq_length
 
     word_vocab = open(set_dir.Directory('TR').word_vocab_dict, 'wb')
@@ -70,9 +71,11 @@ def generate_vocab(training_file):
     training_file_pointer.close()
     tokenized_training_file.close()
 
-    print(
-        'Reading Completed \n ========================== \n Unique tokens: excluding padding and unkown words %d \n Max. sequence length: %d\n ==========================\n' % (
-            word_counter - 2, max_sequence_length))
+    print('Reading Completed \n ========================== '
+          '\n Unique tokens: excluding padding and unkown words %d '
+          '\n Max. sequence length: %d'
+          '\n ==========================\n'
+          % (word_counter - 2, max_sequence_length))
 
     # print(word_dict)
     return word_dict
@@ -84,35 +87,36 @@ def extract_glove_vectors(word_vocab_file, glove_file):
 
     length_word_vector = 0
 
-    glove_present_training_word_vocab_dict = {}
+    glove_present_training_word_vocab_dict = collections.OrderedDict()
     glove_present_training_word_counter = 2  # 3
     # glove_present_training_word_counter = 1
-    glove_present_word_vector_dict = {}
+    glove_present_word_vector_dict = collections.OrderedDict()
 
+    glove_present_training_word_vocab_dict['PAD'] = 0
     glove_present_training_word_vocab_dict['UNK'] = 1  # 2
     glove_present_word_vector_dict[1] = glove_vocab_dict.get('UNK')
 
-    if length_word_vector == 0:
+    if (length_word_vector == 0):
         length_word_vector = len(glove_vocab_dict.get('the').split(' '))
 
     for key, value in word_vocab_dict.items():
 
-        if config.all_lowercase:
-            if key.lower() in glove_vocab_dict:
+        if(config.all_lowercase):
+            if (glove_vocab_dict.has_key(key.lower())):
                 key = key.lower()
-            elif key in glove_vocab_dict:
+            elif (glove_vocab_dict.has_key(key)):
                 key = key
-            elif key.title() in glove_vocab_dict:
+            elif (glove_vocab_dict.has_key(key.title())):
                 key = key.title()
-            elif key.upper() in glove_vocab_dict:
+            elif (glove_vocab_dict.has_key(key.upper())):
                 key = key.upper()
             else:
                 key = key.lower()
 
-        if key not in glove_present_training_word_vocab_dict:
-            if config.use_unknown_word:
-                if key in glove_vocab_dict and not config.use_random_initializer:
-                    if key != 'UNK':
+        if(not glove_present_training_word_vocab_dict.has_key(key)):
+            if (config.use_unknown_word):
+                if (glove_vocab_dict.has_key(key) and config.use_random_initializer == False):
+                    if (key != 'UNK'):
                         glove_present_training_word_vocab_dict[key] = glove_present_training_word_counter
                         glove_present_word_vector_dict[glove_present_training_word_counter] = glove_vocab_dict.get(key)
                         glove_present_training_word_counter += 1
@@ -120,15 +124,15 @@ def extract_glove_vectors(word_vocab_file, glove_file):
                     glove_present_training_word_vocab_dict[key] = glove_present_training_word_counter
                     vec_str = ''
                     for i in range(length_word_vector):
-                        vec_str += str(round(random.uniform(-0.1, 0.1), 6)) + ' '
+                        vec_str += str(round(random.uniform(-0.9, 0.9), 6)) + ' '
                     glove_present_word_vector_dict[glove_present_training_word_counter] = vec_str.strip()
                     glove_present_training_word_counter += 1
-            elif key in glove_vocab_dict and not config.use_random_initializer and not config.use_unknown_word:
-                if key != 'UNK':
+            elif (glove_vocab_dict.has_key(key) and config.use_random_initializer == False and config.use_unknown_word == False):
+                if (key != 'UNK'):
                     glove_present_training_word_vocab_dict[key] = glove_present_training_word_counter
                     glove_present_word_vector_dict[glove_present_training_word_counter] = glove_vocab_dict.get(key)
                     glove_present_training_word_counter += 1
-            elif config.use_random_initializer:
+            elif (config.use_random_initializer):
                 glove_present_training_word_vocab_dict[key] = glove_present_training_word_counter
                 glove_present_word_vector_dict[glove_present_training_word_counter] = glove_vocab_dict.get('UNK')
                 glove_present_training_word_counter += 1
@@ -151,13 +155,13 @@ def extract_glove_vectors(word_vocab_file, glove_file):
     print(glove_present_training_word_vocab_dict)
 
     print('Glove_present_unique_training_tokens, Total unique tokens, Glove token size')
-    print(len(glove_present_word_vector_dict), len(word_vocab_dict), len(glove_vocab_dict))
+    print(len(glove_present_training_word_vocab_dict), len(word_vocab_dict), len(glove_vocab_dict))
 
     word_vector_file.close()
 
     print('\nVocab Size:')
     # print(len(glove_present_word_vector_dict)+2)
-    print(len(glove_present_word_vector_dict) + 1)
+    print(len(glove_present_training_word_vocab_dict))
 
     glove_present_training_word_vocab.close()
     # return(len(glove_present_word_vector_dict)+2)
@@ -166,10 +170,10 @@ def extract_glove_vectors(word_vocab_file, glove_file):
     #   WORD METADATA
     ####
     meta_file = open(dirObj.word_emb_tsv, 'w')
-    meta_file.write('Word' + '\t' + 'Id' + '\n')
-    meta_file.write('PAD' + '\t' + '0' + '\n')
+    # meta_file.write('Word' + '\t' + 'Id' + '\n')
     for key, value in glove_present_training_word_vocab_dict.iteritems():
-        meta_file.write(key + '\t' + str(value) + '\n')
+        # meta_file.write(key + '\t' + str(value) + '\n')
+        meta_file.write(key + '\n')
     meta_file.close()
     #####
 
@@ -182,15 +186,15 @@ def util():
     vocab_size = extract_glove_vectors(set_dir.Directory('TR').word_vocab_dict, gloveDict)
     return vocab_size
 
-# def main():
-#     training_file = set_dir.Directory('TR').data_filename
-#     word_dict = generate_vocab(training_file)
-#     vocab_size = extract_glove_vectors(set_dir.Directory('TR').word_vocab_dict, gloveDict)
-#     return vocab_size
-#
-#
-# # extractGloveVectors('glove.300.txt')
-#
-#
-# if __name__ == '__main__':
-#     main()
+def main():
+    training_file = set_dir.Directory('TR').data_filename
+    word_dict = generate_vocab(training_file)
+    vocab_size = extract_glove_vectors(set_dir.Directory('TR').word_vocab_dict, gloveDict)
+    return vocab_size
+
+
+# extractGloveVectors('glove.300.txt')
+
+
+if __name__ == '__main__':
+    main()
