@@ -21,6 +21,8 @@ This repository contains code for text classification using attention mechanism 
 
 * **_[run_module](/global_module/run_module):_** wrapper code to execute end-to-end train and test pipeline.
 
+* **_[viz_module](/global_module/viz_module):_** code to generate embedding visualization via tensorboard.
+
 * **_[utility_code](/global_module/utility_code):_** other utility codes
 
 <br/>
