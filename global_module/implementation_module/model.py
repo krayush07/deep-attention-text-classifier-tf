@@ -100,6 +100,7 @@ class DeepAttentionClassifier:
 
             output1 = tf.layers.dense(inputs=sentence_vector,
                                       units=self.params.num_classes,
+                                      activation=tf.nn.tanh,
                                       kernel_initializer=tf.random_uniform_initializer(minval=-0.1, maxval=0.1),
                                       bias_initializer=tf.constant_initializer(0.01),
                                       name='fc_1')

@@ -42,7 +42,8 @@ def run_epoch(session, eval_op, model_obj, dict_obj, verbose=False):
         for each_pred in prediction:
             output_file.write(str(each_pred + 1) + '\n')
 
-    print 'CE loss: %.4f, Accuracy: %.4f' % (epoch_combined_loss, (total_correct / total_instances) * 100)
+    print 'CE loss: %.4f, Total instances: %d, Correct: %d, Accuracy: %.4f' \
+          % (epoch_combined_loss, total_instances, total_correct, (total_correct / total_instances) * 100)
 
     return epoch_combined_loss
 

@@ -7,9 +7,6 @@ import numpy as np
 
 
 def run_epoch(session, eval_op, model_obj, dict_obj, verbose=False):
-    epoch_combined_loss = 0.0
-    total_correct = 0.0
-    total_instances = 0.0
     print('\nrun epoch')
 
     output_file = open(set_dir.Directory('TE').log_emb_path + '/word_embedding.csv', 'w')
@@ -38,9 +35,7 @@ def run_epoch(session, eval_op, model_obj, dict_obj, verbose=False):
 
         break
 
-    print 'CE loss: %.4f, Accuracy: %.4f' % (epoch_combined_loss, (total_correct / total_instances) * 100)
-
-    return epoch_combined_loss
+    print 'Embedding file written ...'
 
 
 def get_length(filename):
@@ -94,7 +89,7 @@ def run_test(session, test_obj, dict_obj):
     start_time = time.time()
 
     print("Starting test computation\n")
-    test_loss = run_epoch(session, tf.no_op(), test_obj, dict_obj)
+    run_epoch(session, tf.no_op(), test_obj, dict_obj)
 
     curr_time = time.time()
     print('1 epoch run takes ' + str(((curr_time - start_time) / 60)) + ' minutes.')
