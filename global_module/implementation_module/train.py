@@ -60,7 +60,7 @@ def run_epoch(session, writer, eval_op, min_cost, model_obj, dict_obj, epoch_num
                     writer.add_run_metadata(run_metadata, 'step%d' % iter_train)
                     writer.add_summary(summary, iter_train)
 
-                    print(iter_train, accuracy)
+                    # print(iter_train, accuracy)
             else:
                 summary, loss, prediction, probabilities, accuracy, _ = session.run([model_obj.merged_train,
                                                                            model_obj.loss,

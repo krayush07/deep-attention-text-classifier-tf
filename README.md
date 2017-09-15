@@ -59,3 +59,36 @@ Go to `set_params.py` [here](/global_module/settings_module/set_params.py).
 
 
 <br/>
+
+
+# Model Graph
+
+![alt text](global_module/utility_dir/viz/model.png?raw=true "model")
+
+
+# Loss and Accuracy Plots
+
+![alt text](global_module/utility_dir/viz/train_loss.png?raw=true "train_loss")
+
+![alt text](global_module/utility_dir/viz/train_acc.png?raw=true "train_acc")
+
+![alt text](global_module/utility_dir/viz/valid_loss.png?raw=true "valid_loss")
+
+![alt text](global_module/utility_dir/viz/valid_acc.png?raw=true "valid_acc")
+
+
+#Histogram
+
+![alt text](global_module/utility_dir/viz/histograms.png?raw=true "histogram")
+
+# Embedding Visualization
+
+![alt text](global_module/utility_dir/viz/1999.png?raw=true "1999")
+
+![alt text](global_module/utility_dir/viz/engineer.png?raw=true "engineer")
+
+![alt text](global_module/utility_dir/viz/fever.png?raw=true "fever")
+
+![alt text](global_module/utility_dir/viz/society.png?raw=true "society")
+
+![alt text](global_module/utility_dir/viz/tomato.png?raw=true "tomato")
