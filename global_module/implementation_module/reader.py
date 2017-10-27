@@ -57,6 +57,7 @@ def format_string(inp_string, curr_string_len, max_len):
 
 
 def generate_id_map(params, data_filename, label_filename, index_arr, dict_obj):
+    global curr_label
     data_file_arr = open(data_filename, 'r').readlines()
     label_file_arr = open(label_filename, 'r').readlines()
 
@@ -64,9 +65,15 @@ def generate_id_map(params, data_filename, label_filename, index_arr, dict_obj):
     length_arr = []
     label_arr = []
 
+    label_not_present = 0
+
     for each_idx in index_arr:
         curr_line = data_file_arr[each_idx].strip()
-        curr_label = dict_obj.label_dict[label_file_arr[each_idx].strip()]
+        if  dict_obj.label_dict.has_key(label_file_arr[each_idx].strip()):
+            curr_label = dict_obj.label_dict[label_file_arr[each_idx].strip()]
+        elif params.mode == 'TE':
+            curr_label = '-1'
+            label_not_present += 1
 
         curr_seq_token_len, curr_seq_token_id = get_index_string(curr_line, dict_obj.word_dict, params)
         curr_seq_token_string = format_string(curr_seq_token_id, curr_seq_token_len, params.MAX_SEQ_LEN)
@@ -78,7 +85,7 @@ def generate_id_map(params, data_filename, label_filename, index_arr, dict_obj):
         length_arr.append(curr_seq_token_len)
         label_arr.append(curr_label)
 
-    print('Reading: DONE')
+    print('Reading: DONE, Label not present: %d' % label_not_present)
     return input_seq_arr, length_arr, label_arr
 
 

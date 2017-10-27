@@ -130,7 +130,10 @@ class DeepAttentionClassifier:
                     tvars = tf.trainable_variables()
                     l2_regularizer = tf.contrib.layers.l2_regularizer(scale=self.params.REG_CONSTANT, scope=None)
                     regularization_penalty = tf.contrib.layers.apply_regularization(l2_regularizer, tvars)
-                    reg_penalty_word_emb = tf.contrib.layers.apply_regularization(l2_regularizer, [self.word_emb_matrix])
+                    if self.params.is_word_trainable:
+                        reg_penalty_word_emb = tf.contrib.layers.apply_regularization(l2_regularizer, [self.word_emb_matrix])
+                    else:
+                        reg_penalty_word_emb = 0
                     reg_loss = regularization_penalty - reg_penalty_word_emb
                 else:
                     reg_loss = 0
