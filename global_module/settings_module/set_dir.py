@@ -46,7 +46,7 @@ class Directory:
 
         ''' ****************** Directory to saving or loading a model ********************** '''''
         self.latest_checkpoint = 'checkpoint'
-        self.model_name = '/trec_fine_classifier.ckpt'  # model name .ckpt is the model extension
+        self.model_name = '/metlife_classifier.ckpt'  # model name .ckpt is the model extension
         ''' ********** ********* ******** ********* ********* ********* ******** ************* '''''
 
         self.test_cost_path = self.output_path + '/test_predictions.txt'  # test cost output
@@ -60,7 +60,7 @@ class Directory:
         self.word_emb_tsv = self.log_emb_path + '/word_metadata.tsv'
 
         ''' ****************** Directory for test model ********************** '''''
-        self.test_model_name = '/trec_fine_classifier.ckpt'
+        self.test_model_name = '/metlife_classifier.ckpt'
         self.test_model = self.model_path + self.test_model_name
 
     def makedir(self, dirname):

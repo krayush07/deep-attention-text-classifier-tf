@@ -34,13 +34,21 @@ class DeepAttentionClassifier:
 
     def create_rnn_cell(self):
         if self.params.rnn_cell == 'lstm':
-            with tf.variable_scope('lstm_cell'):
-                self.rnn_cell = tf.contrib.rnn.BasicLSTMCell(num_units=self.params.RNN_HIDDEN_DIM, forget_bias=1.0)
-                self.rnn_cell = tf.contrib.rnn.DropoutWrapper(self.rnn_cell, input_keep_prob=self.params.keep_prob, output_keep_prob=self.params.keep_prob)
+            self.rnn_cell = tf.nn.rnn_cell.MultiRNNCell([self.get_lstm_cell() for _ in range(self.params.NUM_LAYER)])
         else:
-            with tf.variable_scope('gru_cell'):
-                self.rnn_cell = tf.contrib.rnn.GRUCell(num_units=self.params.RNN_HIDDEN_DIM)
-                self.rnn_cell = tf.contrib.rnn.DropoutWrapper(self.rnn_cell, input_keep_prob=self.params.keep_prob, output_keep_prob=self.params.keep_prob)
+            self.rnn_cell = tf.nn.rnn_cell.MultiRNNCell([self.get_gru_cell() for _ in range(self.params.NUM_LAYER)])
+
+    def get_gru_cell(self):
+        with tf.variable_scope('gru_cell'):
+            rnn_cell = tf.contrib.rnn.GRUCell(num_units=self.params.RNN_HIDDEN_DIM)
+            rnn_cell = tf.contrib.rnn.DropoutWrapper(rnn_cell, input_keep_prob=self.params.keep_prob, output_keep_prob=self.params.keep_prob)
+            return rnn_cell
+
+    def get_lstm_cell(self):
+        with tf.variable_scope('lstm_cell'):
+            rnn_cell = tf.contrib.rnn.BasicLSTMCell(num_units=self.params.RNN_HIDDEN_DIM, forget_bias=1.0)
+            rnn_cell = tf.contrib.rnn.DropoutWrapper(rnn_cell, input_keep_prob=self.params.keep_prob, output_keep_prob=self.params.keep_prob)
+            return rnn_cell
 
     def embedding_layer_lookup(self):
         with tf.variable_scope('lookup'):
@@ -56,6 +64,8 @@ class DeepAttentionClassifier:
                                                                      inputs=self.word_emb_feature,
                                                                      sequence_length=self.seq_length,
                                                                      dtype=tf.float32)
+                if self.params.rnn_cell == 'lstm':
+                    self.rnn_state = self.rnn_state[self.params.NUM_LAYER-1][1]
             else:
                 ((fw_outputs, bw_outputs), (fw_state, bw_state)) = tf.nn.bidirectional_dynamic_rnn(cell_fw=self.rnn_cell,
                                                                                                    cell_bw=self.rnn_cell,
@@ -65,10 +75,10 @@ class DeepAttentionClassifier:
                 self.rnn_outputs = tf.concat(values=(fw_outputs, bw_outputs), axis=2, name='concat_output')
 
                 if self.params.rnn_cell == 'lstm':
-                    self.rnn_state = tf.concat(values=(fw_state[1], bw_state[1]), axis=1, name='concat_state')
+                    self.rnn_state = tf.concat(values=(fw_state[self.params.NUM_LAYER-1][1], bw_state[self.params.NUM_LAYER-1][1]), axis=1, name='concat_state')
                     # self.rnn_state = fw_state[1] + bw_state[1]
                 elif self.params.rnn_cell == 'gru':
-                    self.rnn_state = tf.concat(values=(fw_state, bw_state), axis=1, name='concat_state')
+                    self.rnn_state = tf.concat(values=(fw_state[self.params.NUM_LAYER-1], bw_state[self.params.NUM_LAYER-1]), axis=1, name='concat_state')
                     # self.rnn_state = fw_state + bw_state
 
     def apply_attention(self):

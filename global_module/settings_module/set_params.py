@@ -22,26 +22,27 @@ class ParamsClass:
         self.enable_shuffle = False
         self.enable_checkpoint = False
         self.all_lowercase = True
-        self.log = True
+        self.log = False
         self.log_step = 9
 
         if mode == 'TE':
             self.enable_shuffle = False
 
+        self.NUM_LAYER = 10
         self.REG_CONSTANT = 0.001
-        self.MAX_SEQ_LEN = 45
+        self.MAX_SEQ_LEN = 20
         self.EMB_DIM = 300
-        self.RNN_HIDDEN_DIM = 256
-        self.ATTENTION_DIM = 256
+        self.RNN_HIDDEN_DIM = 50
+        self.ATTENTION_DIM = 512
 
-        self.batch_size = 32
+        self.batch_size = 64
         self.vocab_size = 30
         self.is_word_trainable = True
 
-        self.use_unknown_word = False
+        self.use_unknown_word = True
         self.use_random_initializer = False
 
-        self.use_attention = True
+        self.use_attention = False
 
         self.indices = None
         self.num_instances = None
