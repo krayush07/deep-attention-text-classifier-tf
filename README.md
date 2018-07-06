@@ -32,7 +32,7 @@ This repository contains code for text classification using attention mechanism 
 
 * **test:** `python -m global_module.run_module.run_test`
 
-* **visualize tensorboard:** `python -m tensorflow.tensorboard --logdir=PATH-TO-LOG-DIR`
+* **visualize tensorboard:** `tensorboard --logdir=PATH-TO-LOG-DIR`
 
 <br/>
 
