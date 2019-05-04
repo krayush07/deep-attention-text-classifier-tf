@@ -160,7 +160,7 @@ class DeepAttentionClassifier:
             else:
                 self.merged_else = []
 
-            print 'Loss Computation: DONE'
+            print('Loss Computation: DONE')
 
     def train(self):
         with tf.variable_scope('train'):

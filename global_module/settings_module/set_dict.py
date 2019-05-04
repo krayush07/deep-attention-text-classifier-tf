@@ -2,7 +2,7 @@ import pickle
 
 import numpy as np
 
-import set_dir
+from global_module.settings_module import set_dir
 
 
 class Dictionary:

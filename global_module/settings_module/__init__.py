@@ -1,0 +1,1 @@
+from global_module.settings_module import set_dir

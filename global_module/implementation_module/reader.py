@@ -69,7 +69,7 @@ def generate_id_map(params, data_filename, label_filename, index_arr, dict_obj):
 
     for each_idx in index_arr:
         curr_line = data_file_arr[each_idx].strip()
-        if  dict_obj.label_dict.has_key(label_file_arr[each_idx].strip()):
+        if  label_file_arr[each_idx].strip() in dict_obj.label_dict:
             curr_label = dict_obj.label_dict[label_file_arr[each_idx].strip()]
         elif params.mode == 'TE':
             curr_label = '-1'
@@ -95,7 +95,7 @@ def data_iterator(params, data_filename, label_filename, index_arr, dict_obj):
     batch_size = params.batch_size
     num_batches = len(index_arr) / params.batch_size
 
-    for i in range(num_batches):
+    for i in range(int(num_batches)):
         curr_input_seq_arr = np.loadtxt(input_seq_arr[i * batch_size: (i + 1) * batch_size], dtype=np.int32)
         if batch_size == 1:
             curr_input_seq_arr = np.expand_dims(curr_input_seq_arr, axis=0)

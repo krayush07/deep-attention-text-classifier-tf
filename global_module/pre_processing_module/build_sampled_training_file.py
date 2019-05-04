@@ -1,10 +1,10 @@
-import cPickle
+import pickle
 import re
 
 from global_module.settings_module import set_dir, set_params
 
-glove_dict = cPickle.load(open(set_dir.Directory('TR').glove_path, 'rb'))
-
+# glove_dict = pickle.load(open(set_dir.Directory('TR').glove_path, 'rb'))
+glove_dict = pickle.load(open('/Users/ayushobserve/Downloads/w2v_embedding_new_dict.pkl', 'rb'))
 config = set_params.ParamsClass('TR')
 
 

@@ -1,4 +1,4 @@
-import cPickle as pickle
+import pickle
 
 from global_module.settings_module import set_dir
 
@@ -16,7 +16,7 @@ def generate_indexed_labels():
     label_map_file = open(set_dir.Directory('TR').label_map_dict, 'wb')
     pickle.dump(label_hash, label_map_file, protocol=pickle.HIGHEST_PROTOCOL)
 
-    print 'Total classes %d' % (len(label_hash))
+    print('Total classes %d' % (len(label_hash)))
 
 
 def util():

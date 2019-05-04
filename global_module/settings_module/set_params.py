@@ -31,7 +31,7 @@ class ParamsClass:
         self.NUM_LAYER = 10
         self.REG_CONSTANT = 0.001
         self.MAX_SEQ_LEN = 20
-        self.EMB_DIM = 300
+        self.EMB_DIM = 200
         self.RNN_HIDDEN_DIM = 50
         self.ATTENTION_DIM = 512
 

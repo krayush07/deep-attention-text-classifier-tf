@@ -10,7 +10,7 @@
 # word_embedding.csv					-> word embedding corresponding to glove_present_words
 
 
-import cPickle
+import pickle
 import csv
 import pickle
 import random
@@ -52,7 +52,7 @@ def generate_vocab(training_file):
             tokenized_training_string += tokenized_string + '\t'
 
             for token in tokenized_sent:
-                if (word_dict.has_key(token) == False):
+                if (token in word_dict == False):
                     word_dict[token] = word_counter
                     word_counter += 1
 
@@ -65,7 +65,7 @@ def generate_vocab(training_file):
 
     word_vocab = open(set_dir.Directory('TR').word_vocab_dict, 'wb')
 
-    pickle.dump(word_dict, word_vocab, protocol=cPickle.HIGHEST_PROTOCOL)
+    pickle.dump(word_dict, word_vocab)
 
     word_vocab.close()
     training_file_pointer.close()
@@ -82,8 +82,8 @@ def generate_vocab(training_file):
 
 
 def extract_glove_vectors(word_vocab_file, glove_file):
-    glove_vocab_dict = cPickle.load(open(glove_file, 'rb'))
-    word_vocab_dict = cPickle.load(open(word_vocab_file, 'rb'))
+    glove_vocab_dict = pickle.load(open(glove_file, 'rb'))
+    word_vocab_dict = pickle.load(open(word_vocab_file, 'rb'))
 
     length_word_vector = 0
 
@@ -94,10 +94,10 @@ def extract_glove_vectors(word_vocab_file, glove_file):
 
     glove_present_training_word_vocab_dict['PAD'] = 0
     glove_present_training_word_vocab_dict['UNK'] = 1  # 2
-    glove_present_word_vector_dict[1] = glove_vocab_dict.get('UNK')
+    glove_present_word_vector_dict[1] = glove_vocab_dict['food']
 
     if (length_word_vector == 0):
-        length_word_vector = len(glove_vocab_dict.get('the').split(' '))
+        length_word_vector = len(glove_vocab_dict['food'].split(' '))
 
     for key, value in word_vocab_dict.items():
 
@@ -113,7 +113,7 @@ def extract_glove_vectors(word_vocab_file, glove_file):
             else:
                 key = key.lower()
 
-        if(not glove_present_training_word_vocab_dict.has_key(key)):
+        if(key not in glove_present_training_word_vocab_dict):
             if (config.use_unknown_word):
                 if (glove_vocab_dict.has_key(key) and config.use_random_initializer == False):
                     if (key != 'UNK'):
@@ -150,7 +150,7 @@ def extract_glove_vectors(word_vocab_file, glove_file):
         writer.writerow([value])
 
     glove_present_training_word_vocab = open(set_dir.Directory('TR').glove_present_training_word_vocab, 'wb')
-    pickle.dump(glove_present_training_word_vocab_dict, glove_present_training_word_vocab, protocol=cPickle.HIGHEST_PROTOCOL)
+    pickle.dump(glove_present_training_word_vocab_dict, glove_present_training_word_vocab)
 
     print(glove_present_training_word_vocab_dict)
 
@@ -171,7 +171,7 @@ def extract_glove_vectors(word_vocab_file, glove_file):
     ####
     meta_file = open(dirObj.word_emb_tsv, 'w')
     # meta_file.write('Word' + '\t' + 'Id' + '\n')
-    for key, value in glove_present_training_word_vocab_dict.iteritems():
+    for key, value in glove_present_training_word_vocab_dict.items():
         # meta_file.write(key + '\t' + str(value) + '\n')
         meta_file.write(key + '\n')
     meta_file.close()

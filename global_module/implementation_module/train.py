@@ -93,7 +93,8 @@ def run_epoch(session, writer, eval_op, min_cost, model_obj, dict_obj, epoch_num
                     # print 'writing'
                     writer.add_summary(summary, iter_valid)
 
-    print 'Epoch Num: %d, CE loss: %.4f, Accuracy: %.4f' % (epoch_num, epoch_combined_loss, (total_correct / total_instances) * 100)
+    print('Epoch Num: %d, CE loss: %.4f, Accuracy: %.4f' % (epoch_num, epoch_combined_loss, (total_correct /
+                                                                                             total_instances) * 100))
 
     if params.mode == 'VA':
         model_saver = tf.train.Saver()
