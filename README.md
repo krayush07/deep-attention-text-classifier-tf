@@ -4,7 +4,7 @@ This repository contains code for text classification using attention mechanism 
 <br/>
 
 # Requirements
-* Python 2.7<br/>
+* Python 3.6<br/>
 * Tensorflow 1.2.1<br/>
 * Numpy<br/>
 

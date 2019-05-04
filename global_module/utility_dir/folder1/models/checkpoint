@@ -1,0 +1,2 @@
+model_checkpoint_path: "/Users/ayushobserve/observe/deep-attention-text-classifier-tf/global_module/utility_dir/folder1/models/metlife_classifier.ckpt"
+all_model_checkpoint_paths: "/Users/ayushobserve/observe/deep-attention-text-classifier-tf/global_module/utility_dir/folder1/models/metlife_classifier.ckpt"
